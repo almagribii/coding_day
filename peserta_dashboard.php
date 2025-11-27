@@ -1,8 +1,8 @@
 <?php
 include 'includes/db_config.php';
 
-$team_id = 5; 
-$team_name = "Tim Beta";
+$team_id = 8; 
+$team_name = "alansin";
 $is_verified = false; 
 
 $last_submission = null;
