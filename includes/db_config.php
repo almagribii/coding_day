@@ -3,7 +3,7 @@
 $host = 'localhost';
 $db   = 'coding_day';
 $user = 'root'; 
-$pass = 'sqlqu'; 
+$pass = ''; 
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";

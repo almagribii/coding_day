@@ -1,5 +1,7 @@
 <?php
 include 'includes/db_config.php'; 
+include 'includes/db_config.php'; 
+include 'includes/mongo_config.php'; 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $team_id = $_POST['team_id'] ?? 0;
@@ -26,7 +28,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ");
                 $stmt->execute([$team_id, $gdrive_link]);
                 $message = "Submission baru berhasil dikirim!";
+
+                // --- MULAI KODE NOSQL (MONGODB) ---
+            if ($logCollection) {
+                $logCollection->insertOne([
+                    'event' => 'SUBMISSION_SENT',
+                    'team_id' => (int)$team_id,
+                    'link' => $gdrive_link,
+                    'waktu' => new MongoDB\BSON\UTCDateTime(), // Format waktu khusus Mongo
+                    'info_tambahan' => [
+                        'browser' => $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown',
+                        'ip' => $_SERVER['REMOTE_ADDR']
+                    ]
+                ]);
             }
+            // --- SELESAI KODE NOSQL ---
+            }
+            
 
             header("Location: peserta_dashboard.php?msg=" . urlencode($message));
             exit;
