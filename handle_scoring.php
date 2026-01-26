@@ -1,5 +1,7 @@
 <?php
 include 'includes/db_config.php'; 
+include 'includes/db_config.php'; 
+include 'includes/mongo_config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $submission_id = $_POST['submission_id'] ?? 0;
@@ -28,6 +30,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ");
                 $stmt->execute([$submission_id, $jury_id, $score, $comments]);
                 $message = "Nilai berhasil disimpan!";
+
+                // --- MULAI KODE NOSQL (MONGODB) ---
+                if ($logCollection) {
+                    $logCollection->insertOne([
+                        'event' => 'JURY_SCORING',
+                        'jury_id' => (int)$jury_id,
+                        'submission_id' => (int)$submission_id,
+                        'nilai' => (int)$score,
+                        'komentar' => $comments,
+                        'waktu' => new MongoDB\BSON\UTCDateTime()
+                    ]);
+                }
+                // --- SELESAI KODE NOSQL ---
             }
 
             $pdo->prepare("UPDATE submissions SET status = 'RATED' WHERE id = ?")->execute([$submission_id]);
