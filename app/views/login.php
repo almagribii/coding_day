@@ -8,46 +8,46 @@ $error = '';
 if (isLoggedIn()) {
     $role = $_SESSION['role'];
     if ($role === 'PANITIA') {
-        header('Location: panitia_dashboard.php');
+        header('Location: /coding-day-app/panitia');
     } elseif ($role === 'PESERTA') {
-        header('Location: peserta_dashboard.php');
+        header('Location: /coding-day-app/peserta');
     } elseif ($role === 'JURI') {
-        header('Location: juri_dashboard.php');
+        header('Location: /coding-day-app/juri');
     }
     exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
     $role = $_POST['role'] ?? 'PESERTA';
     
-    if (!empty($email) && !empty($password)) {
+    if (!empty($email)) {
         try {
-            $stmt = $pdo->prepare("SELECT id, email, password_hash, role FROM users WHERE email = ? AND role = ?");
+            // Login hanya dengan email dan role - tanpa password
+            $stmt = $pdo->prepare("SELECT id, email, role FROM users WHERE email = ? AND role = ?");
             $stmt->execute([$email, $role]);
             $user = $stmt->fetch();
             
-            if ($user && password_verify($password, $user['password_hash'])) {
+            if ($user) {
                 loginUser($user['id'], $user['email'], $user['role']);
                 
                 // Redirect based on role
                 if ($user['role'] === 'PANITIA') {
-                    header('Location: panitia_dashboard.php');
+                    header('Location: /coding-day-app/panitia');
                 } elseif ($user['role'] === 'PESERTA') {
-                    header('Location: peserta_dashboard.php');
+                    header('Location: /coding-day-app/peserta');
                 } elseif ($user['role'] === 'JURI') {
-                    header('Location: juri_dashboard.php');
+                    header('Location: /coding-day-app/juri');
                 }
                 exit;
             } else {
-                $error = 'Email atau password salah!';
+                $error = 'Email tidak ditemukan untuk role yang dipilih!';
             }
         } catch (\PDOException $e) {
             $error = 'Terjadi kesalahan sistem: ' . $e->getMessage();
         }
     } else {
-        $error = 'Email dan password harus diisi!';
+        $error = 'Email harus diisi!';
     }
 }
 ?>
@@ -94,10 +94,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="login-container">
         <div class="login-card card">
+            <!-- LOGIN VIEW VERSION: no-password v1 -->
             <div class="login-header">
                 <i class="bi bi-code-slash" style="font-size: 3rem; color: var(--accent-blue);"></i>
                 <h1>CODING DAY 2026</h1>
                 <p>Masuk ke Dashboard Anda</p>
+                <small class="text-muted">Passwordless Mode</small>
             </div>
             
             <?php if ($error): ?>
@@ -116,15 +118,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="email" class="form-control" id="email" name="email" required 
                            placeholder="nama@email.com" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
                     <div class="invalid-feedback">Masukkan email yang valid</div>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="password" class="form-label">
-                        <i class="bi bi-lock me-1"></i> Password
-                    </label>
-                    <input type="password" class="form-control" id="password" name="password" required 
-                           placeholder="••••••••">
-                    <div class="invalid-feedback">Masukkan password</div>
                 </div>
                 
                 <div class="mb-4">

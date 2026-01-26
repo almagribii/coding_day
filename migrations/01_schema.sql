@@ -4,7 +4,7 @@ USE coding_day;
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(100) UNIQUE NOT NULL,
-    password_hash CHAR(60) NOT NULL,
+    password_hash CHAR(60) NULL,  -- NULL = login tanpa password
     role ENUM('PANITIA', 'PESERTA', 'JURI') NOT NULL DEFAULT 'PESERTA'
 );
 
