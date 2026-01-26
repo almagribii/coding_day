@@ -1,6 +1,6 @@
 <?php
-require_once 'includes/auth.php';
-require_once 'includes/db_config.php';
+require_once '../../config/auth.php';
+require_once '../../config/db_config.php';
 
 requireRole('PESERTA');
 
@@ -215,7 +215,7 @@ include 'includes/header.php';
                         </h5>
                     </div>
                     <div class="card-body">
-                        <form action="handle_submission.php" method="POST" class="needs-validation" novalidate>
+                        <form action="/coding-day-app/submit" method="POST" class="needs-validation" novalidate>
                             <input type="hidden" name="team_id" value="<?= $team_id ?>">
                             
                             <div class="mb-3">
@@ -359,6 +359,6 @@ include 'includes/header.php';
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="assets/js/main.js"></script>
+<script src="/coding-day-app/public/js/main.js"></script>
 </body>
 </html>

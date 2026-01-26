@@ -1,15 +1,15 @@
 <?php
-require_once 'includes/auth.php';
+require_once '../../config/auth.php';
 
 // Redirect ke dashboard jika sudah login
 if (isLoggedIn()) {
     $role = $_SESSION['role'];
     if ($role === 'PANITIA') {
-        header('Location: panitia_dashboard.php');
+        header('Location: /coding-day-app/panitia');
     } elseif ($role === 'PESERTA') {
-        header('Location: peserta_dashboard.php');
+        header('Location: /coding-day-app/peserta');
     } elseif ($role === 'JURI') {
-        header('Location: juri_dashboard.php');
+        header('Location: /coding-day-app/juri');
     }
     exit;
 }

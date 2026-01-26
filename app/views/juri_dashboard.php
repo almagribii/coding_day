@@ -1,6 +1,6 @@
 <?php
-require_once 'includes/auth.php';
-require_once 'includes/db_config.php';
+require_once '../../config/auth.php';
+require_once '../../config/db_config.php';
 
 requireRole('JURI');
 
@@ -158,7 +158,7 @@ include 'includes/header.php';
                                 </a>
                             </div>
                             <div class="col-md-7">
-                                <form action="handle_scoring.php" method="POST" class="row g-2 align-items-end">
+                                <form action="/coding-day-app/score" method="POST" class="row g-2 align-items-end">
                                     <input type="hidden" name="submission_id" value="<?= $sub['id'] ?>">
                                     <input type="hidden" name="jury_id" value="<?= $user['id'] ?>">
                                     
@@ -201,6 +201,6 @@ include 'includes/header.php';
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="assets/js/main.js"></script>
+<script src="/coding-day-app/public/js/main.js"></script>
 </body>
 </html>

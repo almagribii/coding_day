@@ -1,6 +1,6 @@
 <?php
-require_once 'includes/auth.php';
-require_once 'includes/db_config.php';
+require_once '../../config/auth.php';
+require_once '../../config/db_config.php';
 
 $pageTitle = 'Leaderboard - Coding Day 2026';
 
@@ -165,6 +165,6 @@ include 'includes/header.php';
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="assets/js/main.js"></script>
+<script src="/coding-day-app/public/js/main.js"></script>
 </body>
 </html>

@@ -1,11 +1,11 @@
 <?php
-require_once 'includes/auth.php';
-require_once 'includes/db_config.php';
+require_once '../../config/auth.php';
+require_once '../../config/db_config.php';
 
 requireRole('PANITIA');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: panitia_dashboard.php');
+    header('Location: /coding-day-app/panitia');
     exit;
 }
 
@@ -16,7 +16,7 @@ $admin_id = $user['id'];
 // Validation
 if (!$team_id) {
     $_SESSION['error'] = 'ID tim tidak valid!';
-    header('Location: panitia_dashboard.php');
+    header('Location: /coding-day-app/panitia');
     exit;
 }
 
@@ -36,12 +36,12 @@ try {
         $_SESSION['error'] = 'Tim sudah terverifikasi atau tidak ditemukan.';
     }
     
-    header("Location: panitia_dashboard.php");
+    header("Location: /coding-day-app/panitia");
     exit;
 
 } catch (PDOException $e) {
     $_SESSION['error'] = 'Gagal memverifikasi tim: ' . $e->getMessage();
-    header('Location: panitia_dashboard.php');
+    header('Location: /coding-day-app/panitia');
     exit;
 }
 ?>

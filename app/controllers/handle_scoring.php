@@ -1,12 +1,12 @@
 <?php
-require_once 'includes/auth.php';
-require_once 'includes/db_config.php';
-require_once 'includes/mongo_config.php';
+require_once '../../config/auth.php';
+require_once '../../config/db_config.php';
+require_once '../../config/mongo_config.php';
 
 requireRole('JURI');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: juri_dashboard.php');
+    header('Location: /coding-day-app/juri');
     exit;
 }
 
@@ -19,7 +19,7 @@ $comments = trim($_POST['comments'] ?? '');
 // Validation
 if (!$submission_id || $score === false || $score < 0 || $score > 100) {
     $_SESSION['error'] = 'Data tidak valid! Nilai harus antara 0-100.';
-    header('Location: juri_dashboard.php');
+    header('Location: /coding-day-app/juri');
     exit;
 }
 
@@ -72,12 +72,12 @@ try {
     }
     
     $_SESSION['success'] = $message;
-    header("Location: juri_dashboard.php");
+    header("Location: /coding-day-app/juri");
     exit;
 
 } catch (PDOException $e) {
     $_SESSION['error'] = 'Gagal menyimpan nilai: ' . $e->getMessage();
-    header('Location: juri_dashboard.php');
+    header('Location: /coding-day-app/juri');
     exit;
 }
 ?>

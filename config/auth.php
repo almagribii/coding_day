@@ -9,7 +9,7 @@ function isLoggedIn() {
 // Function to require login
 function requireLogin() {
     if (!isLoggedIn()) {
-        header('Location: login.php');
+        header('Location: /coding-day-app/login');
         exit;
     }
 }

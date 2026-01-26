@@ -1,12 +1,12 @@
 <?php
-require_once 'includes/auth.php';
-require_once 'includes/db_config.php';
-require_once 'includes/mongo_config.php';
+require_once '../../config/auth.php';
+require_once '../../config/db_config.php';
+require_once '../../config/mongo_config.php';
 
 requireRole('PESERTA');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: peserta_dashboard.php');
+    header('Location: /coding-day-app/peserta');
     exit;
 }
 
@@ -17,14 +17,14 @@ $gdrive_link = trim($_POST['gdrive_link'] ?? '');
 // Validation
 if (!$team_id || empty($gdrive_link)) {
     $_SESSION['error'] = 'Data tidak lengkap!';
-    header('Location: peserta_dashboard.php');
+    header('Location: /coding-day-app/peserta');
     exit;
 }
 
 // Validate Google Drive link
 if (!preg_match('/^https:\/\/(drive|docs)\.google\.com\/.+/', $gdrive_link)) {
     $_SESSION['error'] = 'Link harus dari Google Drive!';
-    header('Location: peserta_dashboard.php');
+    header('Location: /coding-day-app/peserta');
     exit;
 }
 
@@ -35,7 +35,7 @@ try {
     
     if (!$stmt_verify->fetch()) {
         $_SESSION['error'] = 'Tim tidak valid atau belum terverifikasi!';
-        header('Location: peserta_dashboard.php');
+        header('Location: /coding-day-app/peserta');
         exit;
     }
     
@@ -84,12 +84,12 @@ try {
     }
     
     $_SESSION['success'] = $message;
-    header("Location: peserta_dashboard.php");
+    header("Location: /coding-day-app/peserta");
     exit;
 
 } catch (PDOException $e) {
     $_SESSION['error'] = 'Gagal menyimpan submission: ' . $e->getMessage();
-    header('Location: peserta_dashboard.php');
+    header('Location: /coding-day-app/peserta');
     exit;
 }
 ?>
