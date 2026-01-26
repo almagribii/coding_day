@@ -1,7 +1,7 @@
 <?php
-require_once '../../config/auth.php';
-require_once '../../config/db_config.php';
-require_once '../../config/mongo_config.php';
+require_once __DIR__ . '/../../config/auth.php';
+require_once __DIR__ . '/../../config/db_config.php';
+require_once __DIR__ . '/../../config/mongo_config.php';
 
 requireRole('PESERTA');
 

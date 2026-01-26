@@ -1,5 +1,5 @@
 <?php
-require_once '../../config/auth.php';
+require_once __DIR__ . '/../../config/auth.php';
 
 // Redirect ke dashboard jika sudah login
 if (isLoggedIn()) {
