@@ -88,7 +88,7 @@ $additionalCSS = '<style>
 }
 </style>';
 
-include 'includes/header.php';
+include __DIR__ . '/../../config/header.php';
 ?>
 
 <div class="container my-4">
