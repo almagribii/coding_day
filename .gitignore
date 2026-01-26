@@ -1,0 +1,60 @@
+# Dependency files
+/vendor/
+/node_modules/
+composer.lock
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Legacy/Old files
+/legacy/
+
+# System files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.AppleDouble
+.LSOverride
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs and temp files
+*.log
+/logs/
+*.tmp
+*.temp
+*.bak
+*.old
+
+# Build artifacts
+/dist/
+/build/
+.cache/
+temp/
+
+# Sensitive config files (uncomment if needed)
+# config/db_config.php
+# config/mongo_config.php# Cache
+/cache/
+.cache
+
+# Temporary files
+/tmp/
+*.tmp
+
+# Database backups
+/db/backups/
+
+# Session files
+/sessions/
+
+# Don't track personal config overrides
+config.local.php
