@@ -150,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
             
             <div class="text-center mt-4">
-                <a href="index.php" class="text-decoration-none" style="color: var(--accent-blue);">
+                <a href="/coding-day-app/" class="text-decoration-none" style="color: var(--accent-blue);">
                     <i class="bi bi-arrow-left me-1"></i> Kembali ke Homepage
                 </a>
             </div>

@@ -318,7 +318,7 @@ if (isLoggedIn()) {
                     <li class="nav-item"><a class="nav-link" href="#timeline">Jadwal</a></li>
                     <li class="nav-item"><a class="nav-link" href="#kategori">Rules</a></li>
                     <li class="nav-item ms-3">
-                        <a href="login.php" class="btn btn-login">
+                        <a href="/coding-day-app/login" class="btn btn-login">
                             <i class="bi bi-terminal-fill me-1"></i> Login
                         </a>
                     </li>
@@ -357,7 +357,7 @@ if (isLoggedIn()) {
                     </div>
 
                     <div>
-                        <a href="login.php" class="btn-cta">Mulai Coding</a>
+                        <a href="/coding-day-app/login" class="btn-cta">Mulai Coding</a>
                         <a href="#timeline" class="btn-outline-cta">Lihat Rundown</a>
                     </div>
                 </div>
