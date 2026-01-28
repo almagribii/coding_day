@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../config/mongo_config.php';
 requireRole('JURI');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /coding-day-app/juri');
+    header('Location: /juri');
     exit;
 }
 
@@ -18,7 +18,7 @@ $comments = trim($_POST['comments'] ?? '');
 // Validation
 if (empty($submission_id) || $score === false || $score < 0 || $score > 100) {
     $_SESSION['error'] = 'Data tidak valid! Nilai harus antara 0-100.';
-    header('Location: /coding-day-app/juri');
+    header('Location: /juri');
     exit;
 }
 
@@ -77,12 +77,12 @@ try {
     ]);
     
     $_SESSION['success'] = $message;
-    header("Location: /coding-day-app/juri");
+    header("Location: /juri");
     exit;
 
 } catch (Exception $e) {
     $_SESSION['error'] = 'Gagal menyimpan nilai: ' . $e->getMessage();
-    header('Location: /coding-day-app/juri');
+    header('Location: /juri');
     exit;
 }
 ?>

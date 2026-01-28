@@ -1,6 +1,4 @@
 <?php
-// Auth disabled for debugging
-/*
 require_once __DIR__ . '/../../config/auth.php';
 
 // Redirect ke dashboard jika sudah login
@@ -15,7 +13,6 @@ if (isLoggedIn()) {
     }
     exit;
 }
-*/
 ?>
 
 <!DOCTYPE html>
@@ -456,7 +453,7 @@ if (isLoggedIn()) {
                 </div>
                 
                 <div class="col-lg-5 text-center mt-5 mt-lg-0 ">
-                    <img src="/public/logoo.png" alt="Coding Day Logo" class="img-fluid" style="max-width: 80%; filter: drop-shadow(0 0 30px rgba(88, 166, 255, 0.3)); animation: float 3s ease-in-out infinite;">
+                    <img src="/coding-day-app/public/logoo.png" alt="Coding Day Logo" class="img-fluid" style="max-width: 80%; filter: drop-shadow(0 0 30px rgba(88, 166, 255, 0.3)); animation: float 3s ease-in-out infinite;">
                 </div>
             </div>
         </div>

@@ -200,33 +200,127 @@ try {
 }
 
 $additionalCSS = '<style>
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
+.dashboard-header {
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.05) 0%, rgba(137, 87, 229, 0.05) 100%);
+    padding: 2.5rem 2rem;
     margin-bottom: 2rem;
+    border-radius: 16px;
+    border: 2px solid var(--border-light);
+    position: relative;
+    overflow: hidden;
 }
 
-.dashboard-header {
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 2px solid #30363d;
+.dashboard-header::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(88, 166, 255, 0.08), transparent);
+    border-radius: 50%;
+    z-index: 0;
+}
+
+.dashboard-header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent-blue-light) 0%, var(--accent-purple-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 0.5rem 0;
+    font-family: "JetBrains Mono", monospace;
+}
+
+.dashboard-header p {
+    color: var(--text-light);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.stat-box {
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-box::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(88, 166, 255, 0.08), transparent);
+    border-radius: 50%;
+}
+
+.stat-box:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: var(--accent-blue-light);
+    box-shadow: 0 16px 32px rgba(88, 166, 255, 0.15);
+}
+
+.stat-value {
+    font-size: 2.8rem;
+    font-weight: 800;
+    margin: 1rem 0;
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(135deg, var(--accent-blue-light) 0%, var(--accent-purple-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
 }
 
 .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    transition: all 0.3s ease;
     margin-bottom: 2rem;
-    border: 1px solid #30363d;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+    border-color: var(--accent-blue);
 }
 
 .card-header {
-    padding: 1.25rem 1.5rem;
-    background: linear-gradient(135deg, #161b22 0%, #1c2128 100%);
-    border-bottom: 1px solid #30363d;
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.05) 0%, rgba(137, 87, 229, 0.05) 100%);
+    border-bottom: 2px solid var(--border-color);
+    padding: 1.5rem;
+    color: var(--accent-blue-light);
+    font-weight: 700;
 }
 
 .card-body {
     padding: 1.5rem;
+}
+
+.form-control::placeholder {
+    color: #a0a0a0 !important;
+    opacity: 1;
 }
 
 .table {
@@ -235,8 +329,21 @@ $additionalCSS = '<style>
 
 .table thead th {
     padding: 1rem;
-    font-weight: 600;
-    border-bottom: 2px solid #30363d;
+    font-weight: 700;
+    border-bottom: 2px solid var(--border-color);
+    color: var(--accent-blue);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.table tbody tr:hover {
+    background: rgba(88, 166, 255, 0.05);
 }
 
 .table tbody td {
@@ -244,7 +351,17 @@ $additionalCSS = '<style>
     vertical-align: middle;
 }
 
-/* Action buttons styling */
+.team-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.team-name {
+    font-weight: 600;
+    color: var(--accent-blue-light);
+}
+
 .btn-group-actions {
     display: flex;
     gap: 0.5rem;
@@ -252,35 +369,23 @@ $additionalCSS = '<style>
 }
 
 .btn-sm {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
     white-space: nowrap;
+    border-radius: 6px;
+    transition: all 0.2s ease;
 }
 
-td .btn-sm {
-    margin: 0.25rem;
-}
-
-/* Form styling */
-.form-control {
-    padding: 0.625rem 0.875rem;
-}
-
-/* Alert styling */
-.alert {
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.5rem;
-    border-radius: 0.5rem;
-}
-
-/* Modal improvements */
 .modal-content {
-    border-radius: 0.75rem;
-    border: 1px solid #30363d;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
 }
 
 .modal-header {
-    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.05), rgba(137, 87, 229, 0.05));
+    border-bottom: 2px solid var(--border-color);
+    color: var(--accent-blue);
+    font-weight: 700;
 }
 
 .modal-body {
@@ -288,32 +393,53 @@ td .btn-sm {
 }
 
 .modal-footer {
-    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
 }
 
-/* Badge spacing */
 .badge {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
     font-weight: 600;
+    font-size: 0.85rem;
 }
 
-/* Stat box improvements */
-.stat-box {
-    padding: 1.75rem;
+.badge-verified {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.badge-pending {
+    background: rgba(249, 115, 22, 0.2);
+    color: #f97316;
+}
+
+.form-control, .form-select {
+    background: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-white);
+}
+
+.form-control:focus, .form-select:focus {
+    background: var(--secondary-bg);
+    border-color: var(--accent-blue);
+    color: var(--text-white);
+}
+
+.form-label {
+    color: var(--text-white);
+    font-weight: 600;
 }
 </style>';
 
 include __DIR__ . '/../../config/header.php';
 ?>
 
-<div class="container my-4">
+<div class="container my-5">
     <div class="dashboard-header">
         <h1 class="mb-2">
-            <i class="bi bi-shield-lock" style="color: var(--accent-green);"></i>
-            Dashboard Panitia
+            <i class="bi bi-shield-lock"></i> Dashboard Panitia
         </h1>
-        <p class="text-muted mb-0">Kelola tim dan verifikasi peserta</p>
+        <p class="mb-0">Kelola tim dan verifikasi peserta yang mengikuti kompetisi</p>
     </div>
     
     <?php if ($success_message): ?>
@@ -333,19 +459,19 @@ include __DIR__ . '/../../config/header.php';
     <!-- Statistics -->
     <div class="stats-grid">
         <div class="stat-box">
-            <i class="bi bi-people-fill" style="font-size: 2rem; color: var(--accent-blue);"></i>
+            <i class="bi bi-people-fill" style="font-size: 2.5rem; color: var(--accent-blue);"></i>
             <div class="stat-value" style="color: var(--accent-blue);"><?= $total_teams ?></div>
             <div class="stat-label">Total Tim</div>
         </div>
         <div class="stat-box">
-            <i class="bi bi-check-circle-fill" style="font-size: 2rem; color: var(--accent-green);"></i>
+            <i class="bi bi-check-circle-fill" style="font-size: 2.5rem; color: var(--accent-green);"></i>
             <div class="stat-value" style="color: var(--accent-green);"><?= $total_verified ?></div>
             <div class="stat-label">Terverifikasi</div>
         </div>
         <div class="stat-box">
-            <i class="bi bi-clock-fill" style="font-size: 2rem; color: var(--accent-orange);"></i>
+            <i class="bi bi-hourglass-split" style="font-size: 2.5rem; color: var(--accent-orange);"></i>
             <div class="stat-value" style="color: var(--accent-orange);"><?= $total_teams - $total_verified ?></div>
-            <div class="stat-label">Pending</div>
+            <div class="stat-label">Menunggu Verifikasi</div>
         </div>
         <div class="stat-box">
             <i class="bi bi-file-earmark-code" style="font-size: 2rem; color: var(--accent-purple);"></i>
@@ -410,7 +536,7 @@ include __DIR__ . '/../../config/header.php';
                             <td>
                                 <div class="btn-group-actions">
                                     <?php if (!$team['is_verified']): ?>
-                                        <form method="POST" action="/coding-day-app/verify" style="display:inline-block; margin: 0;">
+                                        <form method="POST" action="/verify" style="display:inline-block; margin: 0;">
                                             <input type="hidden" name="team_id" value="<?= (string)$team['_id'] ?>">
                                             <input type="hidden" name="admin_id" value="<?= $user['id'] ?>">
                                             <button type="submit" class="btn btn-sm btn-success">
@@ -521,6 +647,6 @@ include __DIR__ . '/../../config/header.php';
 <?php endforeach; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/coding-day-app/public/js/main.js"></script>
+<script src="/public/js/main.js"></script>
 </body>
 </html>

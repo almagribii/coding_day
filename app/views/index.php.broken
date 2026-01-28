@@ -1,22 +1,35 @@
 <?php
-// Auth disabled for debugging
-/*
-require_once __DIR__ . '/../../config/auth.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+echo "VIEW DEBUG: Starting index.php view file<br>";
+flush();
 
-// Redirect ke dashboard jika sudah login
-if (isLoggedIn()) {
-    $role = $_SESSION['role'];
-    if ($role === 'PANITIA') {
-        header('Location: /coding-day-app/panitia');
-    } elseif ($role === 'PESERTA') {
-        header('Location: /coding-day-app/peserta');
-    } elseif ($role === 'JURI') {
-        header('Location: /coding-day-app/juri');
-    }
-    exit;
-}
-*/
+// Temporarily disabled auth check for debugging
+// require_once __DIR__ . '/../../config/auth.php';
+echo "<!-- DEBUG: Index view loaded -->";
+echo "VIEW DEBUG: About to output HTML<br>";
+flush();
 ?>
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Day 2026 - TEST</title>
+</head>
+<body>
+    <h1 style="color: red; font-size: 50px;">HELLO WORLD TEST</h1>
+    <?php echo "PHP WORKS IN BODY<br>"; ?>
+</body>
+</html>
+<?php
+echo "VIEW DEBUG: HTML output complete<br>";
+exit; // Stop here for testing
+?>
+
+<!-- ORIGINAL CONTENT BELOW - TEMPORARILY DISABLED -->
+<?php /* ?>
 
 <!DOCTYPE html>
 <html lang="id">
@@ -30,21 +43,17 @@ if (isLoggedIn()) {
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
+    <link rel="stylesheet" href="/public/css/style.css">
     <style>
-        /* --- CUSTOM STYLE CODING DAY --- */
-        :root {
-            --primary-bg: #0d1117; /* Warna Gelap ala GitHub Dark Mode */
-            --accent-green: #2ea043; /* Hijau Sukses */
-            --accent-blue: #58a6ff; /* Biru Link */
-            --text-white: #c9d1d9;
-            --card-bg: #161b22;
-        }
-
+        /* --- INDEX PAGE SPECIFIC STYLES --- */
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--primary-bg);
-            color: var(--text-white);
+            background: #0d1117;
+            background: linear-gradient(135deg, var(--primary-bg, #0d1117) 0%, var(--secondary-bg, #161b22) 100%);
+            color: #c9d1d9;
+            color: var(--text-white, #c9d1d9);
             overflow-x: hidden;
+            min-height: 100vh;
         }
 
         /* Font khusus koding */
@@ -54,148 +63,199 @@ if (isLoggedIn()) {
 
         /* Navbar */
         .navbar {
-            background-color: rgba(13, 17, 23, 0.9) !important;
+            background: linear-gradient(135deg, rgba(13, 17, 23, 0.95) 0%, rgba(22, 27, 34, 0.95) 100%) !important;
             backdrop-filter: blur(10px);
             padding: 15px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
         }
+        
         .navbar-brand {
-            font-weight: 700;
+            font-weight: 800;
             font-size: 1.5rem;
             color: var(--text-white) !important;
             font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.5px;
         }
+        
         .nav-link {
-            color: #8b949e !important;
+            color: var(--text-muted) !important;
             font-weight: 500;
             margin-left: 20px;
-            transition: 0.3s;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            position: relative;
         }
+        
         .nav-link:hover {
-            color: var(--accent-blue) !important;
+            color: var(--accent-blue-light) !important;
+            background: rgba(88, 166, 255, 0.1);
         }
+        
         .btn-login {
-            background-color: var(--accent-green);
-            color: #fff;
+            background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-green-light) 100%);
+            color: white;
             font-weight: 700;
-            border-radius: 6px;
-            padding: 8px 25px;
+            border-radius: 8px;
+            padding: 10px 25px;
             border: none;
-            transition: 0.3s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(31, 111, 56, 0.3);
         }
+        
         .btn-login:hover {
-            background-color: #238636;
-            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(31, 111, 56, 0.4);
+            color: white;
         }
-
         /* Hero Section */
         .hero-section {
             padding: 120px 0 60px;
             position: relative;
+            background: linear-gradient(135deg, rgba(13, 17, 23, 0.5) 0%, rgba(22, 27, 34, 0.3) 100%);
         }
+        
         .hero-title {
             font-size: 4.5rem;
             font-weight: 800;
             line-height: 1.1;
             margin-bottom: 20px;
-            color: white;
+            color: var(--text-white);
             font-family: 'JetBrains Mono', monospace;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, var(--text-light) 0%, var(--accent-blue-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
+        
         .hero-subtitle {
             font-size: 1.2rem;
-            color: #8b949e;
+            color: var(--text-muted);
             margin-bottom: 40px;
+            line-height: 1.6;
         }
         
         /* Countdown Box */
         .countdown-box {
-            background: var(--card-bg);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
             padding: 20px;
             display: inline-flex;
             gap: 30px;
             margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
         }
+        
+        .time-item {
+            text-align: center;
+        }
+        
         .time-val {
             font-size: 2rem;
             font-weight: 700;
             display: block;
-            color: var(--accent-blue);
+            color: var(--accent-blue-light);
             font-family: 'JetBrains Mono', monospace;
+            text-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
         }
+        
         .time-label {
             font-size: 0.8rem;
-            color: #8b949e;
+            color: var(--text-muted);
             text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-top: 5px;
         }
 
-        /* Buttons */
+        /* Buttons CTA */
         .btn-cta {
-            background: linear-gradient(135deg, var(--accent-blue) 0%, #3771c8 100%);
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-dark) 100%);
             color: white;
-            padding: 12px 30px;
+            padding: 14px 35px;
             font-weight: 700;
-            border-radius: 6px;
+            border-radius: 8px;
             text-decoration: none;
             display: inline-block;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 6px rgba(88, 166, 255, 0.3);
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 12px rgba(9, 105, 218, 0.3);
+            letter-spacing: 0.5px;
         }
+        
         .btn-cta:hover {
             transform: translateY(-3px);
-            background: linear-gradient(135deg, #69b1ff 0%, #4a88ff 100%);
+            box-shadow: 0 10px 24px rgba(9, 105, 218, 0.4);
             color: white;
-            box-shadow: 0 6px 12px rgba(88, 166, 255, 0.4);
+            text-decoration: none;
         }
+        
         .btn-outline-cta {
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 12px 30px;
+            border: 2px solid var(--border-color);
+            color: var(--text-white);
+            padding: 12px 33px;
             font-weight: 600;
-            border-radius: 6px;
+            border-radius: 8px;
             text-decoration: none;
             margin-left: 15px;
-            transition: 0.3s;
+            transition: all 0.3s ease;
+            display: inline-block;
         }
+        
         .btn-outline-cta:hover {
-            border-color: var(--text-white);
-            color: var(--text-white);
+            border-color: var(--accent-blue-light);
+            color: var(--accent-blue-light);
+            background: rgba(88, 166, 255, 0.1);
         }
 
+        /* Timeline Section */
         .timeline-section {
             padding: 80px 0;
             position: relative;
-            background-color: #0d1117;
+            background: linear-gradient(180deg, var(--primary-bg) 0%, var(--secondary-bg) 100%);
+            border-top: 1px solid var(--border-color);
         }
+        
         .section-title {
             text-align: center;
             font-size: 2.5rem;
-            font-weight: 700;
+            font-weight: 800;
             margin-bottom: 60px;
             font-family: 'JetBrains Mono', monospace;
+            background: linear-gradient(135deg, var(--accent-blue-light) 0%, var(--accent-purple-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
         }
+        
         .timeline {
             position: relative;
             max-width: 800px;
             margin: 0 auto;
         }
+        
         .timeline::after {
             content: '';
             position: absolute;
             width: 2px;
-            background-color: #30363d;
+            background: linear-gradient(180deg, var(--accent-blue) 0%, transparent 100%);
             top: 0;
             bottom: 0;
             left: 50%;
             margin-left: -1px;
         }
+        
         .container-tl {
             padding: 10px 40px;
             position: relative;
             background-color: inherit;
             width: 50%;
         }
+        
         .container-tl::after {
             content: '';
             position: absolute;
@@ -203,13 +263,22 @@ if (isLoggedIn()) {
             height: 16px;
             right: -8px;
             background-color: var(--primary-bg);
-            border: 3px solid var(--accent-green);
+            border: 3px solid var(--accent-blue-light);
             top: 15px;
             border-radius: 50%;
             z-index: 1;
+            box-shadow: 0 0 0 4px rgba(88, 166, 255, 0.2);
+            transition: all 0.3s ease;
         }
+        
+        .container-tl:hover::after {
+            border-color: var(--accent-green-bright);
+            box-shadow: 0 0 0 6px rgba(88, 166, 255, 0.3);
+        }
+        
         .left { left: 0; }
         .right { left: 50%; }
+        
         .left::before {
             content: " ";
             height: 0;
@@ -222,6 +291,7 @@ if (isLoggedIn()) {
             border-width: 10px 0 10px 10px;
             border-color: transparent transparent transparent var(--card-bg);
         }
+        
         .right::before {
             content: " ";
             height: 0;
@@ -234,88 +304,109 @@ if (isLoggedIn()) {
             border-width: 10px 10px 10px 0;
             border-color: transparent var(--card-bg) transparent transparent;
         }
+        
         .right::after { left: -8px; }
+        
         .content-tl {
             padding: 20px 30px;
-            background-color: var(--card-bg);
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
             position: relative;
-            border-radius: 6px;
-            border: 1px solid #30363d;
-            transition: 0.3s;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
         }
+        
         .content-tl:hover {
-            border-color: var(--accent-blue);
-            transform: translateY(-2px);
+            border-color: var(--accent-blue-light);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(88, 166, 255, 0.2);
         }
+        
         .content-tl h2 {
             font-size: 1.1rem;
             font-weight: 700;
-            color: var(--accent-blue);
-            margin-bottom: 5px;
+            color: var(--accent-blue-light);
+            margin-bottom: 8px;
             font-family: 'JetBrains Mono', monospace;
         }
+        
         .content-tl p {
             font-size: 0.9rem;
             margin: 0;
-            color: #8b949e;
+            color: var(--text-muted);
+            line-height: 1.6;
         }
 
+        /* Modal Styles */
         .modal-content {
             background-color: var(--card-bg);
-            border: 1px solid #30363d;
-            color: white;
-        }
-        .modal-header { border-bottom: 1px solid #30363d; }
-        .form-select {
-            background-color: #0d1117;
-            color: white;
-            border: 1px solid #30363d;
-        }
-        .form-select:focus {
-            background-color: #0d1117;
-            color: white;
-            box-shadow: none;
-            border-color: var(--accent-blue);
+            border: 1px solid var(--border-color);
+            color: var(--text-white);
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         }
         
-        @media screen and (max-width: 600px) {
-            .timeline::after { left: 31px; }
-            .container-tl { width: 100%; padding-left: 70px; padding-right: 25px; }
-            .container-tl::before { left: 60px; border: medium solid white; border-width: 10px 10px 10px 0; border-color: transparent var(--card-bg) transparent transparent; }
-            .left::after, .right::after { left: 23px; }
-            .right { left: 0%; }
-            .hero-title { font-size: 3rem; }
+        .modal-header { 
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--card-bg) 100%);
+        }
+        
+        .modal-title {
+            font-weight: 700;
+            color: var(--accent-blue-light);
+        }
+        
+        .btn-close {
+            filter: brightness(0) invert(1);
+        }
+        
+        .form-select {
+            background-color: var(--secondary-bg);
+            color: var(--text-white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-select:focus {
+            background-color: var(--secondary-bg);
+            color: var(--text-white);
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+            border-color: var(--accent-blue-light);
         }
         
         /* Syntax Highlight Decoration */
         .code-snippet {
             font-family: 'JetBrains Mono', monospace;
-            background: #161b22;
+            background: var(--secondary-bg);
             padding: 15px;
-            border-radius: 6px;
-            border: 1px solid #30363d;
-            color: #ff7b72;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            color: var(--status-danger);
             font-size: 0.9rem;
             margin-bottom: 20px;
             display: inline-block;
+            letter-spacing: 1px;
         }
-        .code-green { color: #7ee787; }
-        .code-blue { color: #79c0ff; }
+        
+        .code-green { color: var(--status-success); }
+        .code-blue { color: var(--accent-blue-light); }
         
         /* Rules Section */
         .rules-section {
             padding: 80px 0;
-            background: linear-gradient(180deg, #0d1117 0%, #161b22 100%);
+            background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--primary-bg) 100%);
+            border-top: 1px solid var(--border-color);
         }
         
         .rule-card {
-            background: linear-gradient(135deg, #161b22 0%, #1c2128 100%);
-            border: 1px solid #30363d;
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 35px 25px;
             text-align: center;
             height: 100%;
-            transition: all 0.4s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
         }
@@ -329,6 +420,7 @@ if (isLoggedIn()) {
             height: 100%;
             background: linear-gradient(90deg, transparent, rgba(88, 166, 255, 0.1), transparent);
             transition: left 0.6s ease;
+            z-index: 0;
         }
         
         .rule-card:hover::before {
@@ -337,45 +429,51 @@ if (isLoggedIn()) {
         
         .rule-card:hover {
             transform: translateY(-10px);
-            border-color: var(--accent-blue);
-            box-shadow: 0 10px 30px rgba(88, 166, 255, 0.3);
-            background: linear-gradient(135deg, #1c2128 0%, #21262d 100%);
+            border-color: var(--accent-blue-light);
+            box-shadow: 0 15px 40px rgba(88, 166, 255, 0.2);
+            background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--tertiary-bg) 100%);
         }
         
         .rule-icon {
             font-size: 3rem;
-            color: var(--accent-blue);
+            color: var(--accent-blue-light);
             margin-bottom: 20px;
             display: block;
             transition: all 0.4s ease;
+            position: relative;
+            z-index: 1;
         }
         
         .rule-card:hover .rule-icon {
-            color: var(--accent-green);
-            transform: scale(1.2) rotateY(360deg);
+            color: var(--accent-green-bright);
+            transform: scale(1.2) rotateY(10deg);
         }
         
         .rule-title {
             font-size: 1.3rem;
-            font-weight: 700;
-            color: white;
+            font-weight: 800;
+            color: var(--text-white);
             margin-bottom: 15px;
             font-family: 'JetBrains Mono', monospace;
             transition: color 0.3s ease;
+            position: relative;
+            z-index: 1;
         }
         
         .rule-card:hover .rule-title {
-            color: var(--accent-blue);
+            color: var(--accent-blue-light);
         }
         
         .rule-desc {
             font-size: 0.95rem;
-            color: #8b949e;
+            color: var(--text-muted);
             line-height: 1.6;
             margin: 0;
+            position: relative;
+            z-index: 1;
         }
         
-        /* Add animation delay for each card */
+        /* Animation delays for cards */
         .rule-card:nth-child(1) { animation: fadeInUp 0.6s ease-out 0.1s both; }
         .rule-card:nth-child(2) { animation: fadeInUp 0.6s ease-out 0.2s both; }
         .rule-card:nth-child(3) { animation: fadeInUp 0.6s ease-out 0.3s both; }
@@ -393,9 +491,44 @@ if (isLoggedIn()) {
                 transform: translateY(0);
             }
         }
-    </style>
+
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 100%);
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        footer p {
+            margin: 0;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Responsive Design */
+        @media screen and (max-width: 600px) {
+            .timeline::after { left: 31px; }
+            .container-tl { width: 100%; padding-left: 70px; padding-right: 25px; }
+            .container-tl::before { left: 60px; border: medium solid white; border-width: 10px 10px 10px 0; border-color: transparent var(--card-bg) transparent transparent; }
+            .left::after, .right::after { left: 23px; }
+            .right { left: 0%; }
+            .hero-title { font-size: 3rem; }
+            .btn-outline-cta { margin-left: 0; margin-top: 10px; display: block; }
+            .section-title { font-size: 2rem; }
+            .rule-card { padding: 25px 15px; }
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+    </link>
 </head>
 <body>
+    <div style="position: fixed; top: 0; left: 0; background: red; color: white; padding: 10px; z-index: 99999;">
+        DEBUG: Body rendered! If you see this, CSS is hiding content.
+    </div>
 
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
@@ -411,7 +544,7 @@ if (isLoggedIn()) {
                     <li class="nav-item"><a class="nav-link" href="#timeline">Jadwal</a></li>
                     <li class="nav-item"><a class="nav-link" href="#kategori">Rules</a></li>
                     <li class="nav-item ms-3">
-                        <a href="/coding-day-app/login" class="btn btn-login">
+                        <a href="/login" class="btn btn-login">
                             <i class="bi bi-terminal-fill me-1"></i> Login
                         </a>
                     </li>
@@ -427,7 +560,7 @@ if (isLoggedIn()) {
                     <div class="code-snippet">
                         <span class="code-blue">Welcome</span> <span class="code-green">To</span>
                     </div>
-                    <h1 class="hero-title">CODING DAY<br><span style="color: var(--accent-blue);">CHALLENGE 2026</span></h1>
+                    <h1 class="hero-title">CODING DAY<br><span style="color: var(--accent-blue-light);">CHALLENGE 2026</span></h1>
                     <p class="hero-subtitle">Show Your Code, Prove Your Skills.<br>Satu hari penuh, tantangan nyata, dan satu pemenang.</p>
 
                     <div class="countdown-box">
@@ -450,7 +583,7 @@ if (isLoggedIn()) {
                     </div>
 
                     <div>
-                        <a href="/coding-day-app/login" class="btn-cta">Mulai Coding</a>
+                        <a href="/login" class="btn-cta">Mulai Coding</a>
                         <a href="#timeline" class="btn-outline-cta">Lihat Rundown</a>
                     </div>
                 </div>
@@ -550,7 +683,7 @@ if (isLoggedIn()) {
         </div>
     </section>
 
-    <footer class="text-center py-4" style="background: rgba(0,0,0,0.2); font-size: 0.9rem; color: #777; border-top: 1px solid #30363d;">
+    <footer class="text-center py-4">
         <p class="mb-0">© 2026 Coding Day Organization. Built for Developers.</p>
     </footer>
 

@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../config/mongo_config.php';
 requireRole('PANITIA');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /coding-day-app/panitia');
+    header('Location: /panitia');
     exit;
 }
 
@@ -16,7 +16,7 @@ $admin_id = $user['id'];
 // Validation
 if (empty($team_id)) {
     $_SESSION['error'] = 'ID tim tidak valid!';
-    header('Location: /coding-day-app/panitia');
+    header('Location: /panitia');
     exit;
 }
 
@@ -53,12 +53,12 @@ try {
         $_SESSION['error'] = 'Tim sudah terverifikasi atau tidak ditemukan.';
     }
     
-    header("Location: /coding-day-app/panitia");
+    header("Location: /panitia");
     exit;
 
 } catch (Exception $e) {
     $_SESSION['error'] = 'Gagal memverifikasi tim: ' . $e->getMessage();
-    header('Location: /coding-day-app/panitia');
+    header('Location: /panitia');
     exit;
 }
 ?>

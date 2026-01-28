@@ -14,10 +14,12 @@ $uri = $_SERVER['REQUEST_URI'];
 $uri = str_replace('/coding-day-app', '', $uri);
 $uri = strtok($uri, '?'); // Remove query string
 $uri = rtrim($uri, '/');
-$uri = $uri ?: '/';
+if ($uri === '') {
+    $uri = '/';
+}
 
 // Route to the appropriate page
-if ($uri === '/' || $uri === '') {
+if ($uri === '/') {
     require_once APP_PATH . '/views/index.php';
 } elseif ($uri === '/login') {
     require_once APP_PATH . '/views/login.php';

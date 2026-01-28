@@ -9,7 +9,7 @@ function isLoggedIn() {
 // Function to require login
 function requireLogin() {
     if (!isLoggedIn()) {
-        header('Location: /coding-day-app/login');
+        header('Location: /login');
         exit;
     }
 }
@@ -35,7 +35,7 @@ function loginUser($userId, $email, $role) {
 function logoutUser() {
     session_unset();
     session_destroy();
-    header('Location: /coding-day-app/');
+    header('Location: /');
     exit;
 }
 

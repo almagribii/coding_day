@@ -103,78 +103,179 @@ try {
 
 $additionalCSS = '<style>
 .dashboard-header {
-    background: linear-gradient(135deg, #161b22 0%, #1f2937 100%);
-    padding: 2rem 0;
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.05) 0%, rgba(137, 87, 229, 0.05) 100%);
+    padding: 2.5rem 2rem;
     margin-bottom: 2rem;
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    border: 2px solid var(--border-light);
+    position: relative;
+    overflow: hidden;
 }
+
+.dashboard-header::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(88, 166, 255, 0.1), transparent);
+    border-radius: 50%;
+    z-index: 0;
+}
+
+.dashboard-header > div {
+    position: relative;
+    z-index: 1;
+}
+
+.dashboard-header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent-blue-light) 0%, var(--accent-purple-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 0.5rem 0;
+    font-family: "JetBrains Mono", monospace;
+}
+
+.dashboard-header p {
+    font-size: 1.1rem;
+    color: #e0e0e0;
+}
+
 .stat-box {
-    background: var(--card-bg);
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-box::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(88, 166, 255, 0.1), transparent);
+    border-radius: 50%;
+}
+
+.stat-box:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: var(--accent-blue-light);
+    box-shadow: 0 16px 32px rgba(88, 166, 255, 0.15);
+}
+
+.stat-box i {
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+    color: var(--accent-blue-light);
+}
+
+.stat-box:hover i {
+    transform: scale(1.15) rotateZ(-10deg);
+}
+
+.stat-value {
+    font-size: 2.8rem;
+    font-weight: 800;
+    margin: 1rem 0;
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(135deg, var(--accent-blue-light) 0%, var(--accent-purple-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-label {
+    color: #c0c0c0;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+}
+
+.submission-item {
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
     border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 1.5rem;
-    text-align: center;
-    transition: all 0.3s ease;
-}
-.stat-box:hover {
-    transform: translateY(-4px);
-    border-color: var(--accent-blue);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-}
-.stat-value {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin: 0.5rem 0;
-}
-.stat-label {
-    color: var(--text-muted);
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-.submission-item {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1rem;
     margin-bottom: 1rem;
     transition: all 0.3s ease;
 }
+
 .submission-item:hover {
+    border-color: var(--accent-blue-light);
+    transform: translateX(6px);
+    box-shadow: 0 8px 16px rgba(88, 166, 255, 0.15);
+}
+
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
     border-color: var(--accent-blue);
-    transform: translateX(4px);
+}
+
+.card-body {
+    color: #e0e0e0;
+}
+
+.card-header {
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.05) 0%, rgba(137, 87, 229, 0.05) 100%);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.card-header h5 {
+    color: #e0e0e0;
+}
+
+.form-control::placeholder {
+    color: #a0a0a0 !important;
+    opacity: 1;
 }
 </style>';
 
 include __DIR__ . '/../../config/header.php';
 ?>
 
-<div class="container my-4">
+<div class="container my-5">
     <!-- Dashboard Header -->
     <div class="dashboard-header">
-        <div class="container-fluid">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="mb-2">
-                        <i class="bi bi-laptop" style="color: var(--accent-blue);"></i>
-                        Dashboard Peserta
-                    </h1>
-                    <p class="text-muted mb-0">
-                        <i class="bi bi-people-fill"></i> Tim: <strong><?= htmlspecialchars($team_name) ?></strong>
-                    </p>
-                </div>
-                <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                    <?php if ($is_verified): ?>
-                        <span class="badge bg-success" style="font-size: 1rem; padding: 0.5rem 1rem;">
-                            <i class="bi bi-check-circle-fill"></i> VERIFIED
-                        </span>
-                    <?php else: ?>
-                        <span class="badge" style="background: var(--accent-orange); color: white; font-size: 1rem; padding: 0.5rem 1rem;">
-                            <i class="bi bi-clock-fill"></i> PENDING
-                        </span>
-                    <?php endif; ?>
-                </div>
+        <div class="row align-items-center">
+            <div class="col-md-8 mb-3 mb-md-0">
+                <h1 class="mb-2">
+                    <i class="bi bi-laptop"></i> Dashboard Peserta
+                </h1>
+                <p class="mb-0">
+                    <i class="bi bi-people-fill"></i> Tim: <strong><?= htmlspecialchars($team_name) ?></strong>
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <?php if ($is_verified): ?>
+                    <span class="status-badge status-verified">
+                        <i class="bi bi-check-circle-fill"></i> TERDAFTAR
+                    </span>
+                <?php else: ?>
+                    <span class="status-badge status-pending">
+                        <i class="bi bi-clock-fill"></i> PENDING
+                    </span>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -195,68 +296,68 @@ include __DIR__ . '/../../config/header.php';
         <?php unset($_SESSION['error']); ?>
     <?php endif; ?>
     
-    <!-- Statistics -->
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
+    <!-- Statistics Grid -->
+    <div class="row mb-5">
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="stat-box">
-                <i class="bi bi-file-earmark-code" style="font-size: 2rem; color: var(--accent-blue);"></i>
+                <i class="bi bi-file-earmark-code" style="font-size: 2.5rem; color: var(--accent-blue);"></i>
                 <div class="stat-value" style="color: var(--accent-blue);">
                     <?= count($submissions) ?>
                 </div>
-                <div class="stat-label">Total Submissions</div>
+                <div class="stat-label">Submission</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="stat-box">
-                <i class="bi bi-star-fill" style="font-size: 2rem; color: var(--accent-orange);"></i>
-                <div class="stat-value" style="color: var(--accent-orange);">
+                <i class="bi bi-star-fill" style="font-size: 2.5rem; color: var(--accent-yellow);"></i>
+                <div class="stat-value" style="color: var(--accent-yellow);">
                     <?= number_format($avg_score, 1) ?>
                 </div>
                 <div class="stat-label">Rata-rata Nilai</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="stat-box">
-                <i class="bi bi-trophy-fill" style="font-size: 2rem; color: var(--accent-green);"></i>
+                <i class="bi bi-award-fill" style="font-size: 2.5rem; color: var(--accent-green);"></i>
                 <div class="stat-value" style="color: var(--accent-green);">
                     <?= count($scores) ?>
                 </div>
-                <div class="stat-label">Penilaian Masuk</div>
+                <div class="stat-label">Penilaian Diterima</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="stat-box">
-                <i class="bi bi-shield-check" style="font-size: 2rem; color: var(--accent-purple);"></i>
+                <i class="bi bi-shield-check" style="font-size: 2.5rem; color: var(--accent-purple);"></i>
                 <div class="stat-value" style="color: var(--accent-purple);">
-                    <?= $is_verified ? 'YES' : 'NO' ?>
+                    <?= $is_verified ? '✓' : '✗' ?>
                 </div>
-                <div class="stat-label">Status Verifikasi</div>
+                <div class="stat-label">Verifikasi</div>
             </div>
         </div>
     </div>
     
     <!-- Main Content -->
-    <div class="row">
+    <div class="row"
         <!-- Left Column - Submission Form -->
         <div class="col-lg-8 mb-4">
             <?php if ($is_verified): ?>
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">
+                        <h5 class="mb-0" style="color: #e0e0e0;">
                             <i class="bi bi-cloud-upload"></i> Upload Submission
                         </h5>
                     </div>
                     <div class="card-body">
-                        <form action="/coding-day-app/submit" method="POST" class="needs-validation" novalidate>
+                        <form action="/submit" method="POST" class="needs-validation" novalidate>
                             <input type="hidden" name="team_id" value="<?= $team_id ?>">
                             
                             <div class="mb-3">
-                                <label for="gdrive_link" class="form-label">
+                                <label for="gdrive_link" class="form-label" style="color: #e0e0e0;">
                                     <i class="bi bi-link-45deg"></i> Google Drive Link (Public Access)
                                 </label>
                                 <input type="url" class="form-control" id="gdrive_link" name="gdrive_link" 
                                        placeholder="https://drive.google.com/drive/folders/..." required>
-                                <div class="form-text">
+                                <div class="form-text" style="color: #ffffff;">
                                     Pastikan link dapat diakses oleh siapa saja (Anyone with the link can view)
                                 </div>
                             </div>
@@ -271,7 +372,7 @@ include __DIR__ . '/../../config/header.php';
                 <!-- Submission History -->
                 <div class="card mt-4">
                     <div class="card-header">
-                        <h5 class="mb-0">
+                        <h5 class="mb-0" style="color: #ffffff;">
                             <i class="bi bi-clock-history"></i> Riwayat Submission
                         </h5>
                     </div>
@@ -286,11 +387,11 @@ include __DIR__ . '/../../config/header.php';
                                 <div class="submission-item">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
-                                            <h6 class="mb-1">
+                                            <h6 class="mb-1" style="color: #e0e0e0;">
                                                 <i class="bi bi-file-earmark-code" style="color: var(--accent-blue);"></i>
                                                 Submission #<?= (string)$sub['_id'] ?>
                                             </h6>
-                                            <p class="text-muted mb-2" style="font-size: 0.875rem;">
+                                            <p class="mb-2" style="font-size: 0.875rem; color: #b0b0b0;">
                                                 <i class="bi bi-calendar"></i> <?= $sub['submitted_at']->toDateTime()->format('d M Y, H:i') ?>
                                             </p>
                                             <a href="<?= htmlspecialchars($sub['gdrive_link']) ?>" target="_blank" 
@@ -329,7 +430,7 @@ include __DIR__ . '/../../config/header.php';
         <div class="col-lg-4">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">
+                    <h5 class="mb-0" style="color: #e0e0e0;">
                         <i class="bi bi-star-fill" style="color: var(--accent-orange);"></i> Nilai Terbaru
                     </h5>
                 </div>
@@ -343,7 +444,7 @@ include __DIR__ . '/../../config/header.php';
                         <?php foreach ($scores as $score): ?>
                             <div class="submission-item mb-3">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="text-muted" style="font-size: 0.875rem;">
+                                    <span style="font-size: 0.875rem; color: #ffffff !important; font-weight: 600;">
                                         <i class="bi bi-person"></i> <?= htmlspecialchars(explode('@', $score['jury_email'])[0]) ?>
                                     </span>
                                     <span class="badge bg-primary" style="font-size: 1rem;">
@@ -351,11 +452,11 @@ include __DIR__ . '/../../config/header.php';
                                     </span>
                                 </div>
                                 <?php if ($score['comments']): ?>
-                                    <p class="mb-1" style="font-size: 0.875rem;">
+                                    <p class="mb-1" style="font-size: 0.875rem; color: #d0d0d0;">
                                         <i class="bi bi-chat-left-text"></i> <?= htmlspecialchars($score['comments']) ?>
                                     </p>
                                 <?php endif; ?>
-                                <small class="text-muted">
+                                <small style="color: #ffffff !important; font-weight: 500;">
                                     <i class="bi bi-clock"></i> <?= $score['rated_at']->toDateTime()->format('d M Y') ?>
                                 </small>
                             </div>
@@ -367,22 +468,22 @@ include __DIR__ . '/../../config/header.php';
             <!-- Team Info -->
             <div class="card mt-3">
                 <div class="card-header">
-                    <h5 class="mb-0">
+                    <h5 class="mb-0" style="color: #e0e0e0;">
                         <i class="bi bi-info-circle"></i> Info Tim
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-2">
-                        <strong>Nama Tim:</strong><br>
-                        <?= htmlspecialchars($team_name) ?>
+                        <strong style="color: #e0e0e0;">Nama Tim:</strong><br>
+                        <span style="color: #d0d0d0;"><?= htmlspecialchars($team_name) ?></span>
                     </div>
                     <div class="mb-2">
-                        <strong>Status:</strong><br>
+                        <strong style="color: #e0e0e0;">Status:</strong><br>
                         <?= $is_verified ? '<span class="text-success">✓ Terverifikasi</span>' : '<span class="text-warning">⏳ Menunggu Verifikasi</span>' ?>
                     </div>
                     <div>
-                        <strong>Team ID:</strong><br>
-                        #<?= $team_id ?? '-' ?>
+                        <strong style="color: #e0e0e0;">Team ID:</strong><br>
+                        <span style="color: #d0d0d0;">#<?= $team_id ?? '-' ?></span>
                     </div>
                 </div>
             </div>
@@ -391,6 +492,6 @@ include __DIR__ . '/../../config/header.php';
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/coding-day-app/public/js/main.js"></script>
+<script src="/public/js/main.js"></script>
 </body>
 </html>
