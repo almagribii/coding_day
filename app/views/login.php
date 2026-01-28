@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config/auth.php';
-require_once __DIR__ . '/../../config/db_config.php';
+require_once __DIR__ . '/../../config/mongo_config.php';
 
 $error = '';
 
@@ -24,12 +24,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($email)) {
         try {
             // Login hanya dengan email dan role - tanpa password
-            $stmt = $pdo->prepare("SELECT id, email, role FROM users WHERE email = ? AND role = ?");
-            $stmt->execute([$email, $role]);
-            $user = $stmt->fetch();
+            $user = $usersCollection->findOne([
+                'email' => $email,
+                'role' => $role
+            ]);
             
             if ($user) {
-                loginUser($user['id'], $user['email'], $user['role']);
+                loginUser((string)$user['_id'], $user['email'], $user['role']);
                 
                 // Redirect based on role
                 if ($user['role'] === 'PANITIA') {
@@ -43,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $error = 'Email tidak ditemukan untuk role yang dipilih!';
             }
-        } catch (\PDOException $e) {
+        } catch (Exception $e) {
             $error = 'Terjadi kesalahan sistem: ' . $e->getMessage();
         }
     } else {

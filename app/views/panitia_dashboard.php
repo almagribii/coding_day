@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config/auth.php';
-require_once __DIR__ . '/../../config/db_config.php';
+require_once __DIR__ . '/../../config/mongo_config.php';
 
 requireRole('PANITIA');
 
@@ -21,26 +21,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
     if (!empty($new_team_name) && !empty($leader_email)) {
         try {
-            $pdo->beginTransaction();
-            
-            $dummy_hash = password_hash('password', PASSWORD_DEFAULT);
-            $stmt_user = $pdo->prepare("INSERT INTO users (email, password_hash, role) VALUES (?, ?, 'PESERTA')");
-            $stmt_user->execute([$leader_email, $dummy_hash]);
-            $new_leader_id = $pdo->lastInsertId();
-
-            $stmt_team = $pdo->prepare("INSERT INTO teams (team_name, leader_id, is_verified) VALUES (?, ?, 0)");
-            $stmt_team->execute([$new_team_name, $new_leader_id]);
-            
-            $pdo->commit();
-            $success_message = "Tim " . htmlspecialchars($new_team_name) . " berhasil ditambahkan!";
-            
-        } catch (\PDOException $e) {
-            $pdo->rollBack();
-            if ($e->getCode() === '23000') {
+            // Check if email already exists
+            $existingUser = $usersCollection->findOne(['email' => $leader_email]);
+            if ($existingUser) {
                 $error_message = "Gagal: Email sudah terdaftar.";
             } else {
-                $error_message = "Gagal menambah tim: " . $e->getMessage();
+                // Insert user
+                $dummy_hash = password_hash('password', PASSWORD_DEFAULT);
+                $insertUserResult = $usersCollection->insertOne([
+                    'email' => $leader_email,
+                    'password_hash' => $dummy_hash,
+                    'role' => 'PESERTA',
+                    'created_at' => new MongoDB\BSON\UTCDateTime()
+                ]);
+                $new_leader_id = $insertUserResult->getInsertedId();
+
+                // Insert team
+                $teamsCollection->insertOne([
+                    'team_name' => $new_team_name,
+                    'leader_id' => $new_leader_id,
+                    'is_verified' => false,
+                    'created_at' => new MongoDB\BSON\UTCDateTime()
+                ]);
+                
+                $success_message = "Tim " . htmlspecialchars($new_team_name) . " berhasil ditambahkan!";
             }
+        } catch (Exception $e) {
+            $error_message = "Gagal menambah tim: " . $e->getMessage();
         }
     } else {
         $error_message = "Nama tim dan email wajib diisi.";
@@ -49,37 +56,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // Handle update team
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_team') {
-    $team_id = filter_var($_POST['team_id'] ?? 0, FILTER_VALIDATE_INT);
+    $team_id = $_POST['team_id'] ?? '';
     $updated_team_name = $_POST['team_name'] ?? '';
     $updated_leader_email = $_POST['leader_email'] ?? '';
 
-    if ($team_id && !empty($updated_team_name) && !empty($updated_leader_email)) {
+    if (!empty($team_id) && !empty($updated_team_name) && !empty($updated_leader_email)) {
         try {
-            $pdo->beginTransaction();
+            $teamObjectId = new MongoDB\BSON\ObjectId($team_id);
             
-            // Update team name
-            $stmt_team = $pdo->prepare("UPDATE teams SET team_name = ? WHERE id = ?");
-            $stmt_team->execute([$updated_team_name, $team_id]);
-            
-            // Update leader email
-            $stmt_leader = $pdo->prepare("
-                UPDATE users u
-                JOIN teams t ON u.id = t.leader_id
-                SET u.email = ?
-                WHERE t.id = ?
-            ");
-            $stmt_leader->execute([$updated_leader_email, $team_id]);
-            
-            $pdo->commit();
-            $success_message = "Tim berhasil diupdate!";
-            
-        } catch (\PDOException $e) {
-            $pdo->rollBack();
-            if ($e->getCode() === '23000') {
-                $error_message = "Gagal: Email sudah digunakan tim lain.";
+            // Get team to find leader
+            $team = $teamsCollection->findOne(['_id' => $teamObjectId]);
+            if ($team) {
+                // Check if email is already used by another user
+                $existingUser = $usersCollection->findOne([
+                    'email' => $updated_leader_email,
+                    '_id' => ['$ne' => $team['leader_id']]
+                ]);
+                
+                if ($existingUser) {
+                    $error_message = "Gagal: Email sudah digunakan tim lain.";
+                } else {
+                    // Update team name
+                    $teamsCollection->updateOne(
+                        ['_id' => $teamObjectId],
+                        ['$set' => ['team_name' => $updated_team_name]]
+                    );
+                    
+                    // Update leader email
+                    $usersCollection->updateOne(
+                        ['_id' => $team['leader_id']],
+                        ['$set' => ['email' => $updated_leader_email]]
+                    );
+                    
+                    $success_message = "Tim berhasil diupdate!";
+                }
             } else {
-                $error_message = "Gagal update tim: " . $e->getMessage();
+                $error_message = "Tim tidak ditemukan.";
             }
+        } catch (Exception $e) {
+            $error_message = "Gagal update tim: " . $e->getMessage();
         }
     } else {
         $error_message = "Data tidak lengkap untuk update tim.";
@@ -88,63 +103,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // Handle delete team
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_team') {
-    $team_id = filter_var($_POST['team_id'] ?? 0, FILTER_VALIDATE_INT);
+    $team_id = $_POST['team_id'] ?? '';
 
-    if ($team_id) {
+    if (!empty($team_id)) {
         try {
-            $pdo->beginTransaction();
+            $teamObjectId = new MongoDB\BSON\ObjectId($team_id);
             
-            // Disable foreign key checks temporarily for cascade delete
-            $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
+            // Get team data before deleting
+            $team = $teamsCollection->findOne(['_id' => $teamObjectId]);
             
-            // Get leader_id before deleting team
-            $stmt_get = $pdo->prepare("SELECT leader_id FROM teams WHERE id = ?");
-            $stmt_get->execute([$team_id]);
-            $leader_data = $stmt_get->fetch();
-            
-            if ($leader_data) {
-                // Get all submission IDs for this team
-                $stmt_get_subs = $pdo->prepare("SELECT id FROM submissions WHERE team_id = ?");
-                $stmt_get_subs->execute([$team_id]);
-                $submission_ids = $stmt_get_subs->fetchAll(PDO::FETCH_COLUMN);
+            if ($team) {
+                // Delete all scores for submissions of this team
+                $submissions = $submissionsCollection->find(['team_id' => $teamObjectId])->toArray();
+                $submissionIds = array_map(function($s) { return $s['_id']; }, $submissions);
                 
-                // Delete scores for each submission
-                if (!empty($submission_ids)) {
-                    $placeholders = implode(',', array_fill(0, count($submission_ids), '?'));
-                    $stmt_score = $pdo->prepare("DELETE FROM scores WHERE submission_id IN ($placeholders)");
-                    $stmt_score->execute($submission_ids);
+                if (!empty($submissionIds)) {
+                    $scoresCollection->deleteMany(['submission_id' => ['$in' => $submissionIds]]);
                 }
                 
                 // Delete submissions
-                $stmt_sub = $pdo->prepare("DELETE FROM submissions WHERE team_id = ?");
-                $stmt_sub->execute([$team_id]);
+                $submissionsCollection->deleteMany(['team_id' => $teamObjectId]);
                 
                 // Delete verification_logs
-                $stmt_verif = $pdo->prepare("DELETE FROM verification_logs WHERE team_id = ?");
-                $stmt_verif->execute([$team_id]);
+                $verificationLogsCollection->deleteMany(['team_id' => $teamObjectId]);
                 
                 // Delete team
-                $stmt_team = $pdo->prepare("DELETE FROM teams WHERE id = ?");
-                $stmt_team->execute([$team_id]);
+                $teamsCollection->deleteOne(['_id' => $teamObjectId]);
                 
                 // Delete user (leader)
-                $stmt_user = $pdo->prepare("DELETE FROM users WHERE id = ?");
-                $stmt_user->execute([$leader_data['leader_id']]);
+                $usersCollection->deleteOne(['_id' => $team['leader_id']]);
                 
-                // Re-enable foreign key checks
-                $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
-                
-                $pdo->commit();
                 $success_message = "Tim berhasil dihapus!";
             } else {
-                $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
-                $pdo->rollBack();
                 $error_message = "Tim tidak ditemukan.";
             }
-            
-        } catch (\PDOException $e) {
-            $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
-            $pdo->rollBack();
+        } catch (Exception $e) {
             $error_message = "Gagal menghapus tim: " . $e->getMessage();
         }
     } else {
@@ -154,33 +147,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 try {
     // Get statistics
-    $stats = $pdo->query("
-        SELECT 
-            COUNT(*) as total_teams,
-            SUM(is_verified) as verified_teams
-        FROM teams
-    ")->fetch();
+    $total_teams = $teamsCollection->countDocuments([]);
+    $total_verified = $teamsCollection->countDocuments(['is_verified' => true]);
+    $total_submissions = $submissionsCollection->countDocuments([]);
     
-    $total_teams = $stats['total_teams'] ?? 0;
-    $total_verified = $stats['verified_teams'] ?? 0;
-    
-    $total_submissions = $pdo->query("SELECT COUNT(*) as total FROM submissions")->fetch()['total'];
-    
-    // Get all teams
-    $stmt_teams = $pdo->query("
-        SELECT t.id, t.team_name, t.is_verified, u.email AS leader_email,
-               (SELECT COUNT(*) FROM submissions WHERE team_id = t.id) as submission_count
-        FROM teams t
-        JOIN users u ON t.leader_id = u.id
-        ORDER BY t.id DESC
-    ");
-    $teams = $stmt_teams->fetchAll();
+    // Get all teams with aggregation to join with users and count submissions
+    $teams = $teamsCollection->aggregate([
+        [
+            '$lookup' => [
+                'from' => 'users',
+                'localField' => 'leader_id',
+                'foreignField' => '_id',
+                'as' => 'leader'
+            ]
+        ],
+        [
+            '$unwind' => '$leader'
+        ],
+        [
+            '$lookup' => [
+                'from' => 'submissions',
+                'localField' => '_id',
+                'foreignField' => 'team_id',
+                'as' => 'submissions'
+            ]
+        ],
+        [
+            '$addFields' => [
+                'submission_count' => ['$size' => '$submissions']
+            ]
+        ],
+        [
+            '$project' => [
+                '_id' => 1,
+                'team_name' => 1,
+                'is_verified' => 1,
+                'leader_email' => '$leader.email',
+                'submission_count' => 1
+            ]
+        ],
+        [
+            '$sort' => ['_id' => -1]
+        ]
+    ])->toArray();
 
     if (isset($_GET['success'])) {
         $success_message = "Tim berhasil diverifikasi!";
     }
 
-} catch (\PDOException $e) {
+} catch (Exception $e) {
     die("Database Error: " . $e->getMessage());
 }
 
@@ -381,7 +396,7 @@ include __DIR__ . '/../../config/header.php';
                     <tbody>
                         <?php foreach ($teams as $team): ?>
                         <tr>
-                            <td><?= $team['id'] ?></td>
+                            <td><?= (string)$team['_id'] ?></td>
                             <td><strong><?= htmlspecialchars($team['team_name']) ?></strong></td>
                             <td><?= htmlspecialchars($team['leader_email']) ?></td>
                             <td><span class="badge bg-info"><?= $team['submission_count'] ?></span></td>
@@ -396,7 +411,7 @@ include __DIR__ . '/../../config/header.php';
                                 <div class="btn-group-actions">
                                     <?php if (!$team['is_verified']): ?>
                                         <form method="POST" action="/coding-day-app/verify" style="display:inline-block; margin: 0;">
-                                            <input type="hidden" name="team_id" value="<?= $team['id'] ?>">
+                                            <input type="hidden" name="team_id" value="<?= (string)$team['_id'] ?>">
                                             <input type="hidden" name="admin_id" value="<?= $user['id'] ?>">
                                             <button type="submit" class="btn btn-sm btn-success">
                                                 <i class="bi bi-check"></i> Verifikasi
@@ -409,12 +424,12 @@ include __DIR__ . '/../../config/header.php';
                                     <?php endif; ?>
                                     
                                     <!-- Edit Button -->
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal<?= $team['id'] ?>">
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal<?= (string)$team['_id'] ?>">
                                         <i class="bi bi-pencil"></i> Edit
                                     </button>
                                     
                                     <!-- Delete Button -->
-                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal<?= $team['id'] ?>">
+                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal<?= (string)$team['_id'] ?>">
                                         <i class="bi bi-trash"></i> Hapus
                                     </button>
                                 </div>
@@ -430,7 +445,7 @@ include __DIR__ . '/../../config/header.php';
 
 <!-- Edit Modals -->
 <?php foreach ($teams as $team): ?>
-<div class="modal fade" id="editModal<?= $team['id'] ?>" tabindex="-1">
+<div class="modal fade" id="editModal<?= (string)$team['_id'] ?>" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -440,7 +455,7 @@ include __DIR__ . '/../../config/header.php';
             <form method="POST">
                 <div class="modal-body">
                     <input type="hidden" name="action" value="update_team">
-                    <input type="hidden" name="team_id" value="<?= $team['id'] ?>">
+                    <input type="hidden" name="team_id" value="<?= (string)$team['_id'] ?>">
                     
                     <div class="mb-3">
                         <label class="form-label">Nama Tim</label>
@@ -466,7 +481,7 @@ include __DIR__ . '/../../config/header.php';
 
 <!-- Delete Modals -->
 <?php foreach ($teams as $team): ?>
-<div class="modal fade" id="deleteModal<?= $team['id'] ?>" tabindex="-1">
+<div class="modal fade" id="deleteModal<?= (string)$team['_id'] ?>" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
@@ -476,7 +491,7 @@ include __DIR__ . '/../../config/header.php';
             <form method="POST">
                 <div class="modal-body">
                     <input type="hidden" name="action" value="delete_team">
-                    <input type="hidden" name="team_id" value="<?= $team['id'] ?>">
+                    <input type="hidden" name="team_id" value="<?= (string)$team['_id'] ?>">
                     
                     <div class="alert alert-warning">
                         <i class="bi bi-exclamation-triangle-fill"></i> 

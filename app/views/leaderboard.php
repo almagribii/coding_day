@@ -1,36 +1,73 @@
 <?php
 require_once __DIR__ . '/../../config/auth.php';
-require_once __DIR__ . '/../../config/db_config.php';
+require_once __DIR__ . '/../../config/mongo_config.php';
 
 $pageTitle = 'Leaderboard - Coding Day 2026';
 
 try {
-    // Get team rankings with average scores
-    // Include teams even if they don't have ratings yet
-    $stmt = $pdo->query("
-        SELECT 
-            t.id,
-            t.team_name,
-            t.is_verified,
-            COUNT(DISTINCT s.id) as total_submissions,
-            AVG(sc.score) as avg_score,
-            MAX(sc.score) as max_score,
-            MIN(sc.score) as min_score,
-            COUNT(DISTINCT sc.id) as total_ratings
-        FROM teams t
-        LEFT JOIN submissions s ON t.id = s.team_id
-        LEFT JOIN scores sc ON s.id = sc.submission_id
-        WHERE t.is_verified = 1
-        GROUP BY t.id, t.team_name, t.is_verified
-        ORDER BY 
-            CASE WHEN avg_score IS NULL THEN 1 ELSE 0 END ASC,
-            avg_score DESC, 
-            total_submissions DESC,
-            t.team_name ASC
-    ");
-    $rankings = $stmt->fetchAll();
+    // Get team rankings with average scores using MongoDB aggregation
+    $leaderboardPipeline = [
+        [
+            '$match' => [
+                'is_verified' => true
+            ]
+        ],
+        [
+            '$lookup' => [
+                'from' => 'submissions',
+                'localField' => '_id',
+                'foreignField' => 'team_id',
+                'as' => 'submissions'
+            ]
+        ],
+        [
+            '$addFields' => [
+                'submission_ids' => '$submissions._id'
+            ]
+        ],
+        [
+            '$lookup' => [
+                'from' => 'scores',
+                'localField' => 'submission_ids',
+                'foreignField' => 'submission_id',
+                'as' => 'scores'
+            ]
+        ],
+        [
+            '$addFields' => [
+                'total_submissions' => ['$size' => '$submissions'],
+                'avg_score' => ['$avg' => '$scores.score'],
+                'max_score' => ['$max' => '$scores.score'],
+                'min_score' => ['$min' => '$scores.score'],
+                'total_ratings' => ['$size' => '$scores']
+            ]
+        ],
+        [
+            '$project' => [
+                '_id' => 1,
+                'team_name' => 1,
+                'is_verified' => 1,
+                'total_submissions' => 1,
+                'avg_score' => 1,
+                'max_score' => 1,
+                'min_score' => 1,
+                'total_ratings' => 1,
+                'has_score' => ['$cond' => [['$gt' => ['$avg_score', null]], 1, 0]]
+            ]
+        ],
+        [
+            '$sort' => [
+                'has_score' => -1,  // Teams with scores first
+                'avg_score' => -1,  // Then by score descending
+                'total_submissions' => -1,
+                'team_name' => 1
+            ]
+        ]
+    ];
     
-} catch (\PDOException $e) {
+    $rankings = $teamsCollection->aggregate($leaderboardPipeline)->toArray();
+    
+} catch (Exception $e) {
     $error = 'Error: ' . $e->getMessage();
 }
 

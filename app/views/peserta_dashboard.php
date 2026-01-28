@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config/auth.php';
-require_once __DIR__ . '/../../config/db_config.php';
+require_once __DIR__ . '/../../config/mongo_config.php';
 
 requireRole('PESERTA');
 
@@ -14,49 +14,81 @@ $is_verified = false;
 $leader_id = null;
 
 try {
+    $userObjectId = new MongoDB\BSON\ObjectId($user['id']);
+    
     // Get team info where user is leader
-    $stmt_team = $pdo->prepare("
-        SELECT t.id, t.team_name, t.is_verified, t.leader_id
-        FROM teams t
-        WHERE t.leader_id = ?
-    ");
-    $stmt_team->execute([$user['id']]);
-    $team_data = $stmt_team->fetch();
+    $team_data = $teamsCollection->findOne([
+        'leader_id' => $userObjectId
+    ]);
     
     if ($team_data) {
-        $team_id = $team_data['id'];
+        $team_id = (string)$team_data['_id'];
         $team_name = $team_data['team_name'];
-        $is_verified = $team_data['is_verified'];
+        $is_verified = $team_data['is_verified'] ?? false;
         $leader_id = $team_data['leader_id'];
     }
     
     // Get submission history
     $submissions = [];
     if ($team_id) {
-        $stmt_submissions = $pdo->prepare("
-            SELECT id, gdrive_link, submitted_at, status
-            FROM submissions
-            WHERE team_id = ?
-            ORDER BY submitted_at DESC
-        ");
-        $stmt_submissions->execute([$team_id]);
-        $submissions = $stmt_submissions->fetchAll();
+        $teamObjectId = new MongoDB\BSON\ObjectId($team_id);
+        $submissionsCursor = $submissionsCollection->find(
+            ['team_id' => $teamObjectId],
+            ['sort' => ['submitted_at' => -1]]
+        );
+        $submissions = $submissionsCursor->toArray();
     }
     
-    // Get latest scores
+    // Get latest scores with aggregation
     $scores = [];
     if ($team_id) {
-        $stmt_scores = $pdo->prepare("
-            SELECT sc.score, sc.comments, sc.rated_at, u.email as jury_email
-            FROM scores sc
-            JOIN submissions s ON sc.submission_id = s.id
-            JOIN users u ON sc.jury_user_id = u.id
-            WHERE s.team_id = ?
-            ORDER BY sc.rated_at DESC
-            LIMIT 5
-        ");
-        $stmt_scores->execute([$team_id]);
-        $scores = $stmt_scores->fetchAll();
+        $teamObjectId = new MongoDB\BSON\ObjectId($team_id);
+        
+        $scoresPipeline = [
+            [
+                '$lookup' => [
+                    'from' => 'submissions',
+                    'localField' => 'submission_id',
+                    'foreignField' => '_id',
+                    'as' => 'submission'
+                ]
+            ],
+            [
+                '$unwind' => '$submission'
+            ],
+            [
+                '$match' => [
+                    'submission.team_id' => $teamObjectId
+                ]
+            ],
+            [
+                '$lookup' => [
+                    'from' => 'users',
+                    'localField' => 'jury_user_id',
+                    'foreignField' => '_id',
+                    'as' => 'jury'
+                ]
+            ],
+            [
+                '$unwind' => '$jury'
+            ],
+            [
+                '$sort' => ['rated_at' => -1]
+            ],
+            [
+                '$limit' => 5
+            ],
+            [
+                '$project' => [
+                    'score' => 1,
+                    'comments' => 1,
+                    'rated_at' => 1,
+                    'jury_email' => '$jury.email'
+                ]
+            ]
+        ];
+        
+        $scores = $scoresCollection->aggregate($scoresPipeline)->toArray();
     }
     
     // Calculate average score
@@ -65,7 +97,7 @@ try {
         $avg_score = array_sum(array_column($scores, 'score')) / count($scores);
     }
     
-} catch (\PDOException $e) {
+} catch (Exception $e) {
     $error_message = 'Error: ' . $e->getMessage();
 }
 
@@ -256,10 +288,10 @@ include __DIR__ . '/../../config/header.php';
                                         <div>
                                             <h6 class="mb-1">
                                                 <i class="bi bi-file-earmark-code" style="color: var(--accent-blue);"></i>
-                                                Submission #<?= $sub['id'] ?>
+                                                Submission #<?= (string)$sub['_id'] ?>
                                             </h6>
                                             <p class="text-muted mb-2" style="font-size: 0.875rem;">
-                                                <i class="bi bi-calendar"></i> <?= date('d M Y, H:i', strtotime($sub['submitted_at'])) ?>
+                                                <i class="bi bi-calendar"></i> <?= $sub['submitted_at']->toDateTime()->format('d M Y, H:i') ?>
                                             </p>
                                             <a href="<?= htmlspecialchars($sub['gdrive_link']) ?>" target="_blank" 
                                                class="btn btn-sm btn-outline-primary">
@@ -324,7 +356,7 @@ include __DIR__ . '/../../config/header.php';
                                     </p>
                                 <?php endif; ?>
                                 <small class="text-muted">
-                                    <i class="bi bi-clock"></i> <?= date('d M Y', strtotime($score['rated_at'])) ?>
+                                    <i class="bi bi-clock"></i> <?= $score['rated_at']->toDateTime()->format('d M Y') ?>
                                 </small>
                             </div>
                         <?php endforeach; ?>

@@ -35,7 +35,7 @@ function loginUser($userId, $email, $role) {
 function logoutUser() {
     session_unset();
     session_destroy();
-    header('Location: index.php');
+    header('Location: /coding-day-app/');
     exit;
 }
 

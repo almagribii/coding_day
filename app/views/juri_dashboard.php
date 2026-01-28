@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config/auth.php';
-require_once __DIR__ . '/../../config/db_config.php';
+require_once __DIR__ . '/../../config/mongo_config.php';
 
 requireRole('JURI');
 
@@ -11,43 +11,89 @@ $submissions = [];
 $stats = ['total' => 0, 'rated' => 0, 'pending' => 0];
 
 try {
-    // Get submission statistics - ALL submissions (tidak filtered by juri)
-    $stmt_stats = $pdo->query("
-        SELECT 
-            COUNT(*) as total,
-            SUM(CASE WHEN status = 'RATED' THEN 1 ELSE 0 END) as rated,
-            SUM(CASE WHEN status = 'READY_TO_RATE' THEN 1 ELSE 0 END) as pending
-        FROM submissions
-        WHERE status IN ('READY_TO_RATE', 'RATED')
-    ");
-    $stats = $stmt_stats->fetch();
+    $userObjectId = new MongoDB\BSON\ObjectId($user['id']);
     
-    // Get all submissions available for juri to rate
-    // Show all submissions with status READY_TO_RATE or RATED
-    // Show current juri's score if exists
-    $stmt = $pdo->prepare("
-        SELECT 
-            s.id, 
-            s.team_id,
-            t.team_name, 
-            s.gdrive_link, 
-            s.submitted_at, 
-            s.status, 
-            sc.score, 
-            sc.comments,
-            sc.rated_at
-        FROM submissions s
-        JOIN teams t ON s.team_id = t.id
-        LEFT JOIN scores sc ON s.id = sc.submission_id AND sc.jury_user_id = ?
-        WHERE s.status IN ('READY_TO_RATE', 'RATED')
-        ORDER BY 
-            CASE WHEN sc.score IS NULL THEN 0 ELSE 1 END ASC,
-            s.submitted_at DESC
-    ");
-    $stmt->execute([$user['id']]);
-    $submissions = $stmt->fetchAll();
+    // Get submission statistics - ALL submissions
+    $stats['total'] = $submissionsCollection->countDocuments([
+        'status' => ['$in' => ['READY_TO_RATE', 'RATED']]
+    ]);
+    
+    $stats['rated'] = $submissionsCollection->countDocuments([
+        'status' => 'RATED'
+    ]);
+    
+    $stats['pending'] = $submissionsCollection->countDocuments([
+        'status' => 'READY_TO_RATE'
+    ]);
+    
+    // Get all submissions with aggregation for team name and jury's score
+    $submissionsPipeline = [
+        [
+            '$match' => [
+                'status' => ['$in' => ['READY_TO_RATE', 'RATED']]
+            ]
+        ],
+        [
+            '$lookup' => [
+                'from' => 'teams',
+                'localField' => 'team_id',
+                'foreignField' => '_id',
+                'as' => 'team'
+            ]
+        ],
+        [
+            '$unwind' => '$team'
+        ],
+        [
+            '$lookup' => [
+                'from' => 'scores',
+                'let' => ['submissionId' => '$_id'],
+                'pipeline' => [
+                    [
+                        '$match' => [
+                            '$expr' => [
+                                '$and' => [
+                                    ['$eq' => ['$submission_id', '$$submissionId']],
+                                    ['$eq' => ['$jury_user_id', $userObjectId]]
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                'as' => 'jury_score'
+            ]
+        ],
+        [
+            '$addFields' => [
+                'score' => ['$arrayElemAt' => ['$jury_score.score', 0]],
+                'comments' => ['$arrayElemAt' => ['$jury_score.comments', 0]],
+                'rated_at' => ['$arrayElemAt' => ['$jury_score.rated_at', 0]]
+            ]
+        ],
+        [
+            '$project' => [
+                '_id' => 1,
+                'team_id' => 1,
+                'team_name' => '$team.team_name',
+                'gdrive_link' => 1,
+                'submitted_at' => 1,
+                'status' => 1,
+                'score' => 1,
+                'comments' => 1,
+                'rated_at' => 1
+            ]
+        ],
+        [
+            '$sort' => [
+                'score' => 1,  // null values first (unrated)
+                'submitted_at' => -1
+            ]
+        ]
+    ];
+    
+    $submissions = $submissionsCollection->aggregate($submissionsPipeline)->toArray();
 
-} catch (\PDOException $e) {
+} catch (Exception $e) {
     die("Database Error: " . $e->getMessage());
 }
 
@@ -141,7 +187,7 @@ include __DIR__ . '/../../config/header.php';
                                 </h6>
                                 <small class="text-muted d-block mb-2">
                                     <i class="bi bi-calendar"></i> 
-                                    <?= date('d M Y, H:i', strtotime($sub['submitted_at'])) ?>
+                                    <?= $sub['submitted_at']->toDateTime()->format('d M Y, H:i') ?>
                                 </small>
                                 <small class="text-muted d-block mb-3">
                                     <?php 
@@ -159,7 +205,7 @@ include __DIR__ . '/../../config/header.php';
                             </div>
                             <div class="col-md-7">
                                 <form action="/coding-day-app/score" method="POST" class="row g-2 align-items-end">
-                                    <input type="hidden" name="submission_id" value="<?= $sub['id'] ?>">
+                                    <input type="hidden" name="submission_id" value="<?= (string)$sub['_id'] ?>">
                                     <input type="hidden" name="jury_id" value="<?= $user['id'] ?>">
                                     
                                     <div class="col-md-3">
@@ -187,7 +233,7 @@ include __DIR__ . '/../../config/header.php';
                                             <i class="bi bi-check-circle-fill"></i> Nilai Anda: <strong><?= $sub['score'] ?>/100</strong>
                                         </small>
                                         <small class="text-muted d-block">
-                                            <i class="bi bi-clock"></i> <?= date('d M Y', strtotime($sub['rated_at'])) ?>
+                                            <i class="bi bi-clock"></i> <?= $sub['rated_at']->toDateTime()->format('d M Y') ?>
                                         </small>
                                     </div>
                                 <?php endif; ?>

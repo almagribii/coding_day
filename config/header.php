@@ -51,7 +51,7 @@
                             <span class="badge bg-primary"><?= $_SESSION['role'] ?></span>
                         </li>
                         <li class="nav-item ms-3">
-                            <a href="?logout=1" class="btn btn-danger btn-sm">
+                            <a href="/coding-day-app/logout" class="btn btn-danger btn-sm">
                                 <i class="bi bi-box-arrow-right"></i> Logout
                             </a>
                         </li>

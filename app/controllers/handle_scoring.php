@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/../../config/auth.php';
-require_once __DIR__ . '/../../config/db_config.php';
 require_once __DIR__ . '/../../config/mongo_config.php';
 
 requireRole('JURI');
@@ -11,71 +10,77 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $user = getCurrentUser();
-$submission_id = filter_var($_POST['submission_id'] ?? 0, FILTER_VALIDATE_INT);
+$submission_id = $_POST['submission_id'] ?? '';
 $jury_id = $user['id'];
 $score = filter_var($_POST['score'] ?? null, FILTER_VALIDATE_INT);
 $comments = trim($_POST['comments'] ?? '');
 
 // Validation
-if (!$submission_id || $score === false || $score < 0 || $score > 100) {
+if (empty($submission_id) || $score === false || $score < 0 || $score > 100) {
     $_SESSION['error'] = 'Data tidak valid! Nilai harus antara 0-100.';
     header('Location: /coding-day-app/juri');
     exit;
 }
 
 try {
+    $submissionObjectId = new MongoDB\BSON\ObjectId($submission_id);
+    $juryObjectId = new MongoDB\BSON\ObjectId($jury_id);
+    
     // Check if score already exists
-    $stmt_check = $pdo->prepare("SELECT id FROM scores WHERE submission_id = ? AND jury_user_id = ?");
-    $stmt_check->execute([$submission_id, $jury_id]);
-    $existing_score = $stmt_check->fetch();
+    $existing_score = $scoresCollection->findOne([
+        'submission_id' => $submissionObjectId,
+        'jury_user_id' => $juryObjectId
+    ]);
 
     if ($existing_score) {
         // Update existing score
-        $stmt = $pdo->prepare("
-            UPDATE scores 
-            SET score = ?, comments = ?, rated_at = NOW()
-            WHERE id = ?
-        ");
-        $stmt->execute([$score, $comments, $existing_score['id']]);
+        $scoresCollection->updateOne(
+            ['_id' => $existing_score['_id']],
+            [
+                '$set' => [
+                    'score' => $score,
+                    'comments' => $comments,
+                    'rated_at' => new MongoDB\BSON\UTCDateTime()
+                ]
+            ]
+        );
         $message = "Nilai berhasil diperbarui!";
     } else {
         // Insert new score
-        $stmt = $pdo->prepare("
-            INSERT INTO scores (submission_id, jury_user_id, score, comments) 
-            VALUES (?, ?, ?, ?)
-        ");
-        $stmt->execute([$submission_id, $jury_id, $score, $comments]);
+        $scoresCollection->insertOne([
+            'submission_id' => $submissionObjectId,
+            'jury_user_id' => $juryObjectId,
+            'score' => $score,
+            'comments' => $comments,
+            'rated_at' => new MongoDB\BSON\UTCDateTime()
+        ]);
         $message = "Nilai berhasil disimpan!";
     }
     
     // Update submission status
-    $pdo->prepare("UPDATE submissions SET status = 'RATED' WHERE id = ?")
-        ->execute([$submission_id]);
+    $submissionsCollection->updateOne(
+        ['_id' => $submissionObjectId],
+        ['$set' => ['status' => 'RATED']]
+    );
     
-    // Log to MongoDB if available
-    if (isset($logCollection)) {
-        try {
-            $logCollection->insertOne([
-                'event' => 'JURY_SCORING',
-                'jury_id' => $jury_id,
-                'submission_id' => $submission_id,
-                'score' => $score,
-                'comments' => $comments,
-                'timestamp' => new MongoDB\BSON\UTCDateTime(),
-                'metadata' => [
-                    'ip' => $_SERVER['REMOTE_ADDR'] ?? 'Unknown'
-                ]
-            ]);
-        } catch (Exception $e) {
-            error_log("MongoDB logging failed: " . $e->getMessage());
-        }
-    }
+    // Log to activity logs
+    $activityLogsCollection->insertOne([
+        'event' => 'JURY_SCORING',
+        'jury_id' => $juryObjectId,
+        'submission_id' => $submissionObjectId,
+        'score' => $score,
+        'comments' => $comments,
+        'timestamp' => new MongoDB\BSON\UTCDateTime(),
+        'metadata' => [
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'Unknown'
+        ]
+    ]);
     
     $_SESSION['success'] = $message;
     header("Location: /coding-day-app/juri");
     exit;
 
-} catch (PDOException $e) {
+} catch (Exception $e) {
     $_SESSION['error'] = 'Gagal menyimpan nilai: ' . $e->getMessage();
     header('Location: /coding-day-app/juri');
     exit;
