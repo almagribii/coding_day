@@ -47,6 +47,111 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
+// Handle update team
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_team') {
+    $team_id = filter_var($_POST['team_id'] ?? 0, FILTER_VALIDATE_INT);
+    $updated_team_name = $_POST['team_name'] ?? '';
+    $updated_leader_email = $_POST['leader_email'] ?? '';
+
+    if ($team_id && !empty($updated_team_name) && !empty($updated_leader_email)) {
+        try {
+            $pdo->beginTransaction();
+            
+            // Update team name
+            $stmt_team = $pdo->prepare("UPDATE teams SET team_name = ? WHERE id = ?");
+            $stmt_team->execute([$updated_team_name, $team_id]);
+            
+            // Update leader email
+            $stmt_leader = $pdo->prepare("
+                UPDATE users u
+                JOIN teams t ON u.id = t.leader_id
+                SET u.email = ?
+                WHERE t.id = ?
+            ");
+            $stmt_leader->execute([$updated_leader_email, $team_id]);
+            
+            $pdo->commit();
+            $success_message = "Tim berhasil diupdate!";
+            
+        } catch (\PDOException $e) {
+            $pdo->rollBack();
+            if ($e->getCode() === '23000') {
+                $error_message = "Gagal: Email sudah digunakan tim lain.";
+            } else {
+                $error_message = "Gagal update tim: " . $e->getMessage();
+            }
+        }
+    } else {
+        $error_message = "Data tidak lengkap untuk update tim.";
+    }
+}
+
+// Handle delete team
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_team') {
+    $team_id = filter_var($_POST['team_id'] ?? 0, FILTER_VALIDATE_INT);
+
+    if ($team_id) {
+        try {
+            $pdo->beginTransaction();
+            
+            // Disable foreign key checks temporarily for cascade delete
+            $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
+            
+            // Get leader_id before deleting team
+            $stmt_get = $pdo->prepare("SELECT leader_id FROM teams WHERE id = ?");
+            $stmt_get->execute([$team_id]);
+            $leader_data = $stmt_get->fetch();
+            
+            if ($leader_data) {
+                // Get all submission IDs for this team
+                $stmt_get_subs = $pdo->prepare("SELECT id FROM submissions WHERE team_id = ?");
+                $stmt_get_subs->execute([$team_id]);
+                $submission_ids = $stmt_get_subs->fetchAll(PDO::FETCH_COLUMN);
+                
+                // Delete scores for each submission
+                if (!empty($submission_ids)) {
+                    $placeholders = implode(',', array_fill(0, count($submission_ids), '?'));
+                    $stmt_score = $pdo->prepare("DELETE FROM scores WHERE submission_id IN ($placeholders)");
+                    $stmt_score->execute($submission_ids);
+                }
+                
+                // Delete submissions
+                $stmt_sub = $pdo->prepare("DELETE FROM submissions WHERE team_id = ?");
+                $stmt_sub->execute([$team_id]);
+                
+                // Delete verification_logs
+                $stmt_verif = $pdo->prepare("DELETE FROM verification_logs WHERE team_id = ?");
+                $stmt_verif->execute([$team_id]);
+                
+                // Delete team
+                $stmt_team = $pdo->prepare("DELETE FROM teams WHERE id = ?");
+                $stmt_team->execute([$team_id]);
+                
+                // Delete user (leader)
+                $stmt_user = $pdo->prepare("DELETE FROM users WHERE id = ?");
+                $stmt_user->execute([$leader_data['leader_id']]);
+                
+                // Re-enable foreign key checks
+                $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+                
+                $pdo->commit();
+                $success_message = "Tim berhasil dihapus!";
+            } else {
+                $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+                $pdo->rollBack();
+                $error_message = "Tim tidak ditemukan.";
+            }
+            
+        } catch (\PDOException $e) {
+            $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+            $pdo->rollBack();
+            $error_message = "Gagal menghapus tim: " . $e->getMessage();
+        }
+    } else {
+        $error_message = "ID tim tidak valid.";
+    }
+}
+
 try {
     // Get statistics
     $stats = $pdo->query("
@@ -85,6 +190,102 @@ $additionalCSS = '<style>
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
+}
+
+.dashboard-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #30363d;
+}
+
+.card {
+    margin-bottom: 2rem;
+    border: 1px solid #30363d;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #161b22 0%, #1c2128 100%);
+    border-bottom: 1px solid #30363d;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    padding: 1rem;
+    font-weight: 600;
+    border-bottom: 2px solid #30363d;
+}
+
+.table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+/* Action buttons styling */
+.btn-group-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+td .btn-sm {
+    margin: 0.25rem;
+}
+
+/* Form styling */
+.form-control {
+    padding: 0.625rem 0.875rem;
+}
+
+/* Alert styling */
+.alert {
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+}
+
+/* Modal improvements */
+.modal-content {
+    border-radius: 0.75rem;
+    border: 1px solid #30363d;
+}
+
+.modal-header {
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+}
+
+/* Badge spacing */
+.badge {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Stat box improvements */
+.stat-box {
+    padding: 1.75rem;
 }
 </style>';
 
@@ -192,19 +393,31 @@ include __DIR__ . '/../../config/header.php';
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <?php if (!$team['is_verified']): ?>
-                                    <form method="POST" action="/coding-day-app/verify" style="display:inline;">
-                                        <input type="hidden" name="team_id" value="<?= $team['id'] ?>">
-                                        <input type="hidden" name="admin_id" value="<?= $user['id'] ?>">
-                                        <button type="submit" class="btn btn-sm btn-success">
-                                            <i class="bi bi-check"></i> Verifikasi
-                                        </button>
-                                    </form>
-                                <?php else: ?>
-                                    <button class="btn btn-sm btn-secondary" disabled>
-                                        <i class="bi bi-check-all"></i> Sudah Verified
+                                <div class="btn-group-actions">
+                                    <?php if (!$team['is_verified']): ?>
+                                        <form method="POST" action="/coding-day-app/verify" style="display:inline-block; margin: 0;">
+                                            <input type="hidden" name="team_id" value="<?= $team['id'] ?>">
+                                            <input type="hidden" name="admin_id" value="<?= $user['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="bi bi-check"></i> Verifikasi
+                                            </button>
+                                        </form>
+                                    <?php else: ?>
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-all"></i> Verified
+                                        </span>
+                                    <?php endif; ?>
+                                    
+                                    <!-- Edit Button -->
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal<?= $team['id'] ?>">
+                                        <i class="bi bi-pencil"></i> Edit
                                     </button>
-                                <?php endif; ?>
+                                    
+                                    <!-- Delete Button -->
+                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal<?= $team['id'] ?>">
+                                        <i class="bi bi-trash"></i> Hapus
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -214,6 +427,83 @@ include __DIR__ . '/../../config/header.php';
         </div>
     </div>
 </div>
+
+<!-- Edit Modals -->
+<?php foreach ($teams as $team): ?>
+<div class="modal fade" id="editModal<?= $team['id'] ?>" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil"></i> Edit Tim</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="update_team">
+                    <input type="hidden" name="team_id" value="<?= $team['id'] ?>">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Nama Tim</label>
+                        <input type="text" class="form-control" name="team_name" value="<?= htmlspecialchars($team['team_name']) ?>" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Email Leader</label>
+                        <input type="email" class="form-control" name="leader_email" value="<?= htmlspecialchars($team['leader_email']) ?>" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php endforeach; ?>
+
+<!-- Delete Modals -->
+<?php foreach ($teams as $team): ?>
+<div class="modal fade" id="deleteModal<?= $team['id'] ?>" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-trash"></i> Hapus Tim</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="delete_team">
+                    <input type="hidden" name="team_id" value="<?= $team['id'] ?>">
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill"></i> 
+                        <strong>Peringatan!</strong> Tindakan ini tidak dapat dibatalkan.
+                    </div>
+                    
+                    <p>Apakah Anda yakin ingin menghapus tim berikut?</p>
+                    <ul>
+                        <li><strong>Nama Tim:</strong> <?= htmlspecialchars($team['team_name']) ?></li>
+                        <li><strong>Email Leader:</strong> <?= htmlspecialchars($team['leader_email']) ?></li>
+                        <li><strong>Submission:</strong> <?= $team['submission_count'] ?> file</li>
+                    </ul>
+                    <p class="text-danger">
+                        <small><i class="bi bi-info-circle"></i> Semua data submission dan scores tim ini akan ikut terhapus.</small>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Ya, Hapus Tim
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php endforeach; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/coding-day-app/public/js/main.js"></script>

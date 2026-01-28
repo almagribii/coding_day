@@ -160,7 +160,6 @@ if (isLoggedIn()) {
             color: var(--text-white);
         }
 
-        /* Timeline Section */
         .timeline-section {
             padding: 80px 0;
             position: relative;
@@ -258,7 +257,6 @@ if (isLoggedIn()) {
             color: #8b949e;
         }
 
-        /* Modal Login Custom */
         .modal-content {
             background-color: var(--card-bg);
             border: 1px solid #30363d;
@@ -277,7 +275,6 @@ if (isLoggedIn()) {
             border-color: var(--accent-blue);
         }
         
-        /* Responsive */
         @media screen and (max-width: 600px) {
             .timeline::after { left: 31px; }
             .container-tl { width: 100%; padding-left: 70px; padding-right: 25px; }
@@ -301,6 +298,98 @@ if (isLoggedIn()) {
         }
         .code-green { color: #7ee787; }
         .code-blue { color: #79c0ff; }
+        
+        /* Rules Section */
+        .rules-section {
+            padding: 80px 0;
+            background: linear-gradient(180deg, #0d1117 0%, #161b22 100%);
+        }
+        
+        .rule-card {
+            background: linear-gradient(135deg, #161b22 0%, #1c2128 100%);
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 35px 25px;
+            text-align: center;
+            height: 100%;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .rule-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(88, 166, 255, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .rule-card:hover::before {
+            left: 100%;
+        }
+        
+        .rule-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-blue);
+            box-shadow: 0 10px 30px rgba(88, 166, 255, 0.3);
+            background: linear-gradient(135deg, #1c2128 0%, #21262d 100%);
+        }
+        
+        .rule-icon {
+            font-size: 3rem;
+            color: var(--accent-blue);
+            margin-bottom: 20px;
+            display: block;
+            transition: all 0.4s ease;
+        }
+        
+        .rule-card:hover .rule-icon {
+            color: var(--accent-green);
+            transform: scale(1.2) rotateY(360deg);
+        }
+        
+        .rule-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            transition: color 0.3s ease;
+        }
+        
+        .rule-card:hover .rule-title {
+            color: var(--accent-blue);
+        }
+        
+        .rule-desc {
+            font-size: 0.95rem;
+            color: #8b949e;
+            line-height: 1.6;
+            margin: 0;
+        }
+        
+        /* Add animation delay for each card */
+        .rule-card:nth-child(1) { animation: fadeInUp 0.6s ease-out 0.1s both; }
+        .rule-card:nth-child(2) { animation: fadeInUp 0.6s ease-out 0.2s both; }
+        .rule-card:nth-child(3) { animation: fadeInUp 0.6s ease-out 0.3s both; }
+        .rule-card:nth-child(4) { animation: fadeInUp 0.6s ease-out 0.4s both; }
+        .rule-card:nth-child(5) { animation: fadeInUp 0.6s ease-out 0.5s both; }
+        .rule-card:nth-child(6) { animation: fadeInUp 0.6s ease-out 0.6s both; }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -333,7 +422,7 @@ if (isLoggedIn()) {
             <div class="row align-items-center">
                 <div class="col-lg-7">
                     <div class="code-snippet">
-                        <span class="code-blue">while</span>(alive) { <span class="code-green">code()</span>; }
+                        <span class="code-blue">Welcome</span> <span class="code-green">To</span>
                     </div>
                     <h1 class="hero-title">CODING DAY<br><span style="color: var(--accent-blue);">CHALLENGE 2026</span></h1>
                     <p class="hero-subtitle">Show Your Code, Prove Your Skills.<br>Satu hari penuh, tantangan nyata, dan satu pemenang.</p>
@@ -363,8 +452,8 @@ if (isLoggedIn()) {
                     </div>
                 </div>
                 
-                <div class="col-lg-5 text-center mt-5 mt-lg-0">
-                    <img src="https://cdn-icons-png.flaticon.com/512/919/919833.png" alt="Coding Illustration" class="img-fluid" style="max-width: 80%; filter: drop-shadow(0 0 30px rgba(88, 166, 255, 0.3)); animation: float 3s ease-in-out infinite;">
+                <div class="col-lg-5 text-center mt-5 mt-lg-0 ">
+                    <img src="/coding-day-app/public/logoo.png" alt="Coding Day Logo" class="img-fluid" style="max-width: 80%; filter: drop-shadow(0 0 30px rgba(88, 166, 255, 0.3)); animation: float 3s ease-in-out infinite;">
                 </div>
             </div>
         </div>
@@ -403,6 +492,61 @@ if (isLoggedIn()) {
         </div>
     </section>
 
+    <section id="kategori" class="rules-section">
+        <div class="container">
+            <h2 class="section-title">
+                <span style="color: var(--accent-green);"></span> Aturan Kompetisi
+            </h2>
+            <p class="text-center" style="color: #8b949e; font-size: 1.1rem; margin-top: -40px; margin-bottom: 60px;">
+                Baca dengan teliti sebelum mendaftar dan berpartisipasi
+            </p>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="rule-card">
+                        <i class="bi bi-people-fill rule-icon"></i>
+                        <h3 class="rule-title">Komposisi Tim</h3>
+                        <p class="rule-desc">Setiap tim terdiri dari maksimal 3 anggota. Setiap anggota harus terdaftar resmi dan membawa kartu identitas saat check-in.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="rule-card">
+                        <i class="bi bi-laptop rule-icon"></i>
+                        <h3 class="rule-title">Bring Your Own Device</h3>
+                        <p class="rule-desc">Peserta wajib membawa laptop dan perlengkapan coding sendiri. Panitia hanya menyediakan koneksi internet dan listrik.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="rule-card">
+                        <i class="bi bi-shield-check rule-icon"></i>
+                        <h3 class="rule-title">Originalitas Kode</h3>
+                        <p class="rule-desc">Dilarang keras melakukan plagiasi. Kode harus ditulis selama kompetisi berlangsung. Template dasar diperbolehkan.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="rule-card">
+                        <i class="bi bi-code-slash rule-icon"></i>
+                        <h3 class="rule-title">Teknologi Bebas</h3>
+                        <p class="rule-desc">Peserta bebas menggunakan bahasa pemrograman atau framework apa saja (Web/Mobile/Desktop) sesuai kenyamanan tim.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="rule-card">
+                        <i class="bi bi-git rule-icon"></i>
+                        <h3 class="rule-title">Submission</h3>
+                        <p class="rule-desc">Hasil akhir wajib di-upload ke Repository (GitHub/GitLab) dan link dikumpulkan sebelum batas waktu berakhir.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="rule-card">
+                        <i class="bi bi-trophy-fill rule-icon"></i>
+                        <h3 class="rule-title">Fair Play</h3>
+                        <p class="rule-desc">Keputusan juri bersifat mutlak. Segala bentuk kecurangan atau gangguan terhadap tim lain akan didiskualifikasi.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <footer class="text-center py-4" style="background: rgba(0,0,0,0.2); font-size: 0.9rem; color: #777; border-top: 1px solid #30363d;">
         <p class="mb-0">© 2026 Coding Day Organization. Built for Developers.</p>
     </footer>
@@ -410,7 +554,6 @@ if (isLoggedIn()) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Countdown ke Tanggal Acara
         const targetDate = new Date("March 1, 2026 09:00:00").getTime();
 
         const timer = setInterval(function() {
